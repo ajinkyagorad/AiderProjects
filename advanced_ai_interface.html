@@ -237,7 +237,7 @@
 
             if (command.toLowerCase().includes('summarize chat')) {
                 summarizeChat();
-            } else if (command.toLowerCase().startsWith('draw ')) {
+            } else if (command.toLowerCase().startsWith('draw ') || command.toLowerCase().includes('show rectangle') || command.toLowerCase().includes('show circle')) {
                 handleDrawCommand(command);
             } else if (command.toLowerCase().startsWith('change color to ')) {
                 changeColor(command.toLowerCase().replace('change color to ', ''));
@@ -248,7 +248,7 @@
                 showCard(cardNumber);
             } else if (command.toLowerCase().startsWith('generate image of ')) {
                 await generateImage(command.replace('generate image of ', '').trim());
-            } else {
+            } else if (isAiInferenceEnabled) {
                 const response = await getAIResponse(command);
                 addToChatHistory('AI', response);
                 speakResponse(response);
