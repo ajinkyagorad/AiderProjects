@@ -67,6 +67,7 @@
 
                     source = audioContext.createMediaStreamSource(stream);
                     source.connect(analyser);
+                    spectrogramData = []; // Reset spectrogram data
                     createCharts();
                     updateAnalysis();
                     startTranscription();
@@ -99,6 +100,14 @@
         }
 
         function createCharts() {
+            // Destroy existing charts if they exist
+            if (frequencyChart) {
+                frequencyChart.destroy();
+            }
+            if (spectrogramChart) {
+                spectrogramChart.destroy();
+            }
+
             const frequencyCtx = document.getElementById('frequencyChart').getContext('2d');
             frequencyChart = new Chart(frequencyCtx, {
                 type: 'bar',
