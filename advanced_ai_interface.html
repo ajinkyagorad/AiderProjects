@@ -14,6 +14,11 @@
             display: flex;
             height: 100vh;
             font-size: 18px;
+            overflow: hidden;
+        }
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
         }
         #main-container {
             display: flex;
@@ -118,8 +123,15 @@
             background-color: rgba(0, 0, 0, 0.7);
             border: 1px solid #333;
             padding: 10px;
-            font-size: 12px;
+            font-size: 10px;
             overflow-y: auto;
+            color: #00FF00;
+        }
+        .fading-text {
+            animation: fadeInOut 4s infinite;
+        }
+        .old-text {
+            color: #888;
         }
     </style>
 </head>
@@ -138,6 +150,13 @@
         </div>
     </div>
     <button id="help-button">Help</button>
+    <button id="fullscreen-button">Fullscreen</button>
+    <button id="toggle-ai-inference">Toggle AI Inference</button>
+    <select id="theme-selector">
+        <option value="dark">Dark Theme</option>
+        <option value="light">Light Theme</option>
+        <option value="blue">Blue Theme</option>
+    </select>
     <div id="help-panel">
         <div id="help-content">
             <h2>Help Instructions</h2>
@@ -165,10 +184,14 @@
         const ctx = canvas.getContext('2d');
         const transcriptionDiv = document.getElementById('transcription');
         const debugBox = document.getElementById('debug-box');
+        const fullscreenButton = document.getElementById('fullscreen-button');
+        const toggleAiInferenceButton = document.getElementById('toggle-ai-inference');
+        const themeSelector = document.getElementById('theme-selector');
 
         let chatMessages = [];
         let cardCount = 0;
         let isListening = false;
+        let isAiInferenceEnabled = true;
 
         // Set up canvas
         canvas.width = canvas.offsetWidth;
@@ -320,7 +343,7 @@
 
         function handleDrawCommand(command) {
             updateDebugBox('Drawing: ' + command);
-            const shape = command.toLowerCase().replace('draw ', '');
+            const shape = command.toLowerCase().replace('draw ', '').replace('show ', '');
             ctx.beginPath();
             switch (shape) {
                 case 'rectangle':
@@ -387,18 +410,29 @@
                     }
                 }
 
-                transcriptionDiv.innerHTML = finalTranscript + '<i style="color: #999;">' + interimTranscript + '</i>';
+                transcriptionDiv.innerHTML = '<span class="fading-text">' + finalTranscript + '</span><i style="color: #999;">' + interimTranscript + '</i>';
+                updateChatHistory(finalTranscript);
             };
 
             recognition.onend = () => {
-                isListening = false;
-                updateDebugBox('Voice recognition ended');
-                if (isListening) {
-                    recognition.start();
-                }
+                updateDebugBox('Voice recognition ended, restarting...');
+                recognition.start();
             };
 
             recognition.start();
+        }
+
+        function updateChatHistory(text) {
+            const messageElement = document.createElement('p');
+            messageElement.innerHTML = `<strong>You:</strong> ${text}`;
+            chatHistory.appendChild(messageElement);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+
+            // Make older messages gray
+            const messages = chatHistory.getElementsByTagName('p');
+            for (let i = 0; i < messages.length - 1; i++) {
+                messages[i].classList.add('old-text');
+            }
         }
 
         function speakResponse(text) {
@@ -424,6 +458,93 @@
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
+
+        // Fullscreen button handler
+        fullscreenButton.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        });
+
+        // Toggle AI Inference button handler
+        toggleAiInferenceButton.addEventListener('click', () => {
+            isAiInferenceEnabled = !isAiInferenceEnabled;
+            toggleAiInferenceButton.textContent = isAiInferenceEnabled ? 'Disable AI Inference' : 'Enable AI Inference';
+        });
+
+        // Theme selector handler
+        themeSelector.addEventListener('change', (event) => {
+            document.body.className = event.target.value + '-theme';
+        });
+
+        // Update help content
+        function updateHelpContent() {
+            const helpContent = document.getElementById('help-content');
+            helpContent.innerHTML = `
+                <h2>Help Instructions</h2>
+                <p>1. Enter your OpenAI API key at the top.</p>
+                <p>2. Use voice commands for all interactions.</p>
+                <p>3. Say "draw rectangle", "draw circle", or "draw triangle" for drawing.</p>
+                <p>4. Say "summarize chat" to get a conversation summary.</p>
+                <p>5. Use "store output" to save important information.</p>
+                <p>6. Say "open card 1" or "show card 2" to view saved info.</p>
+                <p>7. Say "change color to [color]" to modify drawing colors.</p>
+                <p>8. Say "generate image of [description]" for image creation.</p>
+                <p>9. Click the "Fullscreen" button for VR mode.</p>
+                <p>10. Use the "Toggle AI Inference" button to enable/disable AI responses.</p>
+                <p>11. Select a theme from the dropdown to change the color scheme.</p>
+                <p>12. If voice recognition stops, click the "Help" button to see these instructions.</p>
+            `;
+        }
+
+        updateHelpContent();
+
+        // Add moving stars to the background
+        function createMovingStars() {
+            const starCount = 200;
+            const starField = document.createElement('div');
+            starField.style.position = 'fixed';
+            starField.style.top = '0';
+            starField.style.left = '0';
+            starField.style.width = '100%';
+            starField.style.height = '100%';
+            starField.style.overflow = 'hidden';
+            starField.style.zIndex = '-1';
+
+            for (let i = 0; i < starCount; i++) {
+                const star = document.createElement('div');
+                star.style.position = 'absolute';
+                star.style.width = '2px';
+                star.style.height = '2px';
+                star.style.backgroundColor = 'white';
+                star.style.borderRadius = '50%';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animation = `moveStar ${Math.random() * 10 + 5}s linear infinite`;
+                starField.appendChild(star);
+            }
+
+            document.body.appendChild(starField);
+        }
+
+        createMovingStars();
+
+        // Add CSS for moving stars and themes
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes moveStar {
+                from { transform: translateY(0); }
+                to { transform: translateY(100vh); }
+            }
+            .dark-theme { background-color: #000; color: #fff; }
+            .light-theme { background-color: #fff; color: #000; }
+            .blue-theme { background-color: #001f3f; color: #7FDBFF; }
+        `;
+        document.head.appendChild(style);
     </script>
 </body>
 </html>
