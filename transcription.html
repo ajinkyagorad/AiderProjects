@@ -3,35 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real-time Speech Transcription</title>
+    <title>VR Speech Transcription</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+            background-color: #000;
+            color: #fff;
+            margin: 0;
+            padding: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
         }
         #transcription {
             width: 80%;
-            height: 300px;
-            border: 1px solid #ccc;
-            padding: 10px;
+            height: 60vh;
+            border: 2px solid #fff;
+            padding: 20px;
             margin-top: 20px;
             overflow-y: auto;
+            font-size: 24px;
+            line-height: 1.5;
+            text-align: center;
+        }
+        .button {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            border: 2px solid #fff;
+            padding: 15px 30px;
+            font-size: 18px;
+            margin: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .button:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+        #canvas {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: -1;
         }
     </style>
 </head>
 <body>
-    <h1>Real-time Speech Transcription</h1>
-    <button id="toggleButton">Start Transcription</button>
+    <button id="toggleButton" class="button">Start Transcription</button>
+    <button id="fullscreenButton" class="button">Fullscreen</button>
     <div id="transcription"></div>
+    <canvas id="canvas"></canvas>
 
     <script>
         const toggleButton = document.getElementById('toggleButton');
+        const fullscreenButton = document.getElementById('fullscreenButton');
         const transcriptionDiv = document.getElementById('transcription');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
         let recognition;
         let isTranscribing = false;
+
+        // Set canvas size
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
 
         if ('webkitSpeechRecognition' in window) {
             recognition = new webkitSpeechRecognition();
@@ -45,6 +82,7 @@
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
                     if (event.results[i].isFinal) {
                         finalTranscript += event.results[i][0].transcript;
+                        processCommand(event.results[i][0].transcript.trim().toLowerCase());
                     } else {
                         interimTranscript += event.results[i][0].transcript;
                     }
@@ -72,6 +110,45 @@
             toggleButton.style.display = 'none';
             transcriptionDiv.innerHTML = 'Web Speech API is not supported in this browser.';
         }
+
+        fullscreenButton.addEventListener('click', toggleFullscreen);
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+                fullscreenButton.textContent = 'Exit Fullscreen';
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                    fullscreenButton.textContent = 'Fullscreen';
+                }
+            }
+        }
+
+        function processCommand(command) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.lineWidth = 2;
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const size = Math.min(canvas.width, canvas.height) / 4;
+
+            if (command.includes('show rectangle')) {
+                ctx.strokeRect(centerX - size / 2, centerY - size / 2, size, size);
+            } else if (command.includes('show circle')) {
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, size / 2, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+        }
+
+        // Resize canvas when window is resized
+        window.addEventListener('resize', () => {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
     </script>
 </body>
 </html>
