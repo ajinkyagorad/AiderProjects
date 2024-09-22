@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Solar System Simulation</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        #info {
+            position: absolute;
+            top: 10px;
+            width: 100%;
+            text-align: center;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        #controls {
+            position: absolute;
+            bottom: 10px;
+            width: 100%;
+            text-align: center;
+        }
+        button {
+            margin: 0 5px;
+            padding: 5px 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="info">3D Solar System Simulation</div>
+    <div id="controls">
+        <button id="rewind">Rewind</button>
+        <button id="play-pause">Pause</button>
+        <button id="forward">Forward</button>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Set up the scene, camera, and renderer
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Create a starry background
+        const starGeometry = new THREE.BufferGeometry();
+        const starMaterial = new THREE.PointsMaterial({color: 0xFFFFFF, size: 0.1});
+        const starVertices = [];
+        for (let i = 0; i < 10000; i++) {
+            const x = (Math.random() - 0.5) * 2000;
+            const y = (Math.random() - 0.5) * 2000;
+            const z = (Math.random() - 0.5) * 2000;
+            starVertices.push(x, y, z);
+        }
+        starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+        const stars = new THREE.Points(starGeometry, starMaterial);
+        scene.add(stars);
+
+        // Create the Sun
+        const sunGeometry = new THREE.SphereGeometry(5, 32, 32);
+        const sunMaterial = new THREE.MeshBasicMaterial({color: 0xFFFF00});
+        const sun = new THREE.Mesh(sunGeometry, sunMaterial);
+        scene.add(sun);
+
+        // Create planets
+        const planetData = [
+            {name: "Mercury", radius: 0.383, distance: 10, color: 0x8B8B8B, speed: 0.01},
+            {name: "Venus", radius: 0.949, distance: 15, color: 0xFFA500, speed: 0.007},
+            {name: "Earth", radius: 1, distance: 20, color: 0x0000FF, speed: 0.005},
+            {name: "Mars", radius: 0.532, distance: 25, color: 0xFF0000, speed: 0.003},
+            {name: "Jupiter", radius: 11.21, distance: 40, color: 0xFFA07A, speed: 0.001},
+            {name: "Saturn", radius: 9.45, distance: 55, color: 0xFFD700, speed: 0.0008},
+            {name: "Uranus", radius: 4, distance: 70, color: 0x00FFFF, speed: 0.0006},
+            {name: "Neptune", radius: 3.88, distance: 85, color: 0x0000CD, speed: 0.0004}
+        ];
+
+        const planets = planetData.map(planet => {
+            const geometry = new THREE.SphereGeometry(planet.radius * 0.5, 32, 32);
+            const material = new THREE.MeshBasicMaterial({color: planet.color});
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.x = planet.distance;
+            scene.add(mesh);
+            return {mesh, ...planet};
+        });
+
+        // Set up camera position
+        camera.position.z = 100;
+
+        // Animation variables
+        let animationId;
+        let isPaused = false;
+        let timeScale = 1;
+
+        // Animation function
+        function animate() {
+            animationId = requestAnimationFrame(animate);
+            if (!isPaused) {
+                planets.forEach(planet => {
+                    planet.mesh.position.x = Math.cos(Date.now() * planet.speed * timeScale) * planet.distance;
+                    planet.mesh.position.z = Math.sin(Date.now() * planet.speed * timeScale) * planet.distance;
+                });
+            }
+            renderer.render(scene, camera);
+        }
+
+        // Start animation
+        animate();
+
+        // Control buttons
+        const playPauseBtn = document.getElementById('play-pause');
+        const rewindBtn = document.getElementById('rewind');
+        const forwardBtn = document.getElementById('forward');
+
+        playPauseBtn.addEventListener('click', () => {
+            isPaused = !isPaused;
+            playPauseBtn.textContent = isPaused ? 'Play' : 'Pause';
+        });
+
+        rewindBtn.addEventListener('click', () => {
+            timeScale = -1;
+        });
+
+        forwardBtn.addEventListener('click', () => {
+            timeScale = 1;
+        });
+
+        // Window resize handler
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>
