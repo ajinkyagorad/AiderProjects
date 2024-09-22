@@ -7,7 +7,9 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
-        #spectrogram { width: 100%; max-width: 800px; height: 400px; }
+        .chart-container { display: flex; width: 100%; max-width: 1200px; height: 400px; }
+        #frequencyChart { width: 30%; }
+        #spectrogramChart { width: 70%; }
         button { margin: 10px 5px; padding: 5px 10px; }
     </style>
 </head>
@@ -15,7 +17,10 @@
     <h1>Real-time Spectrogram</h1>
     <button id="startButton">Start</button>
     <button id="stopButton" disabled>Stop</button>
-    <canvas id="spectrogram"></canvas>
+    <div class="chart-container">
+        <canvas id="frequencyChart"></canvas>
+        <canvas id="spectrogramChart"></canvas>
+    </div>
 
     <script>
         let audioContext;
@@ -23,7 +28,9 @@
         let dataArray;
         let source;
         let animationId;
-        let chart;
+        let frequencyChart;
+        let spectrogramChart;
+        let spectrogramData = [];
 
         const startButton = document.getElementById('startButton');
         const stopButton = document.getElementById('stopButton');
@@ -42,7 +49,7 @@
                 .then(stream => {
                     source = audioContext.createMediaStreamSource(stream);
                     source.connect(analyser);
-                    createChart();
+                    createCharts();
                     updateSpectrogram();
                     startButton.disabled = true;
                     stopButton.disabled = false;
@@ -62,9 +69,9 @@
             stopButton.disabled = true;
         }
 
-        function createChart() {
-            const ctx = document.getElementById('spectrogram').getContext('2d');
-            chart = new Chart(ctx, {
+        function createCharts() {
+            const frequencyCtx = document.getElementById('frequencyChart').getContext('2d');
+            frequencyChart = new Chart(frequencyCtx, {
                 type: 'bar',
                 data: {
                     labels: Array.from({ length: analyser.frequencyBinCount }, (_, i) => i),
@@ -76,21 +83,65 @@
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
                     animation: false,
+                    indexAxis: 'y',
                     scales: {
                         x: {
-                            title: {
-                                display: true,
-                                text: 'Frequency Bin'
-                            }
-                        },
-                        y: {
                             title: {
                                 display: true,
                                 text: 'Intensity'
                             },
                             min: 0,
                             max: 255
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Frequency Bin'
+                            },
+                            reverse: true
+                        }
+                    }
+                }
+            });
+
+            const spectrogramCtx = document.getElementById('spectrogramChart').getContext('2d');
+            spectrogramChart = new Chart(spectrogramCtx, {
+                type: 'heatmap',
+                data: {
+                    datasets: [{
+                        data: [],
+                        width: 1,
+                        height: analyser.frequencyBinCount
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: false,
+                    plugins: {
+                        legend: false
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            title: {
+                                display: true,
+                                text: 'Time'
+                            },
+                            min: 0,
+                            max: 100
+                        },
+                        y: {
+                            type: 'linear',
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Frequency Bin'
+                            },
+                            reverse: true
                         }
                     }
                 }
@@ -100,8 +151,21 @@
         function updateSpectrogram() {
             animationId = requestAnimationFrame(updateSpectrogram);
             analyser.getByteFrequencyData(dataArray);
-            chart.data.datasets[0].data = Array.from(dataArray);
-            chart.update();
+
+            // Update frequency chart
+            frequencyChart.data.datasets[0].data = Array.from(dataArray);
+            frequencyChart.update();
+
+            // Update spectrogram
+            spectrogramData.push(Array.from(dataArray));
+            if (spectrogramData.length > 100) {
+                spectrogramData.shift();
+            }
+
+            spectrogramChart.data.datasets[0].data = spectrogramData.flatMap((row, i) => 
+                row.map((value, j) => ({ x: i, y: j, v: value }))
+            );
+            spectrogramChart.update();
         }
     </script>
 </body>
