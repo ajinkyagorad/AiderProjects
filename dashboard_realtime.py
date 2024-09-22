@@ -1,17 +1,20 @@
 from lightningchart import (
     LightningChart, ChartXY, Chart3D, LegendBoxBuilders, AxisScrollStrategies,
-    SolidLine, ColorPalettes, UIElementBuilders, UIOrigins, FontSettings, AutoCursorModes
+    SolidLine, ColorPalettes, UIElementBuilders, UIOrigins, FontSettings, AutoCursorModes,
+    Dashboard
 )
 import time
 import math
 import random
 
 def create_dashboard():
-    # Create a LightningChart instance
-    chart = LightningChart()
-
-    # Create a Dashboard
-    dashboard = chart.add_dashboard()
+    # Create a Dashboard instance
+    dashboard = Dashboard(
+        {
+            "title": "Advanced Multi-Chart Dashboard",
+            "theme": "darkGreen"
+        }
+    )
 
     # Add multiple ChartXY to the dashboard
     chart_xy1 = dashboard.create_chart_xy()
