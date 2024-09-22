@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time Spectrogram</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.min.js"></script>
+    <style>
+        body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+        canvas { border: 1px solid #ccc; }
+        button { margin: 10px 5px; padding: 5px 10px; }
+    </style>
+</head>
+<body>
+    <h1>Real-time Spectrogram</h1>
+    <div id="canvas-container"></div>
+    <button id="saveButton">Save Image</button>
+    <button id="clearButton">Clear Spectrogram</button>
+
+    <script>
+        let mic, fft;
+        let spectrogramImage;
+        const fftSize = 1024;
+        const numBands = 256;
+        const spectrogramWidth = 800;
+        const spectrogramHeight = 400;
+        let xPos = 0;
+
+        function setup() {
+            const canvas = createCanvas(spectrogramWidth, spectrogramHeight);
+            canvas.parent('canvas-container');
+            
+            // Initialize microphone and FFT
+            mic = new p5.AudioIn();
+            mic.start();
+            fft = new p5.FFT(0.8, fftSize);
+            fft.setInput(mic);
+
+            // Create spectrogram image
+            spectrogramImage = createImage(spectrogramWidth, spectrogramHeight);
+            spectrogramImage.loadPixels();
+
+            // Set up buttons
+            select('#saveButton').mousePressed(saveSpectrogram);
+            select('#clearButton').mousePressed(clearSpectrogram);
+        }
+
+        function draw() {
+            background(220);
+
+            // Perform FFT analysis
+            fft.analyze();
+            const spectrum = fft.logAverages(fft.getOctaveBands(numBands));
+
+            // Map spectrum to colors and draw on spectrogram
+            for (let i = 0; i < spectrum.length; i++) {
+                const y = map(i, 0, spectrum.length, spectrogramHeight, 0);
+                const intensity = map(spectrum[i], 0, 255, 0, 1);
+                const c = lerpColor(color(0, 0, 0), color(255, 0, 0), intensity);
+                spectrogramImage.set(xPos, y, c);
+            }
+
+            // Update spectrogram image
+            spectrogramImage.updatePixels();
+            image(spectrogramImage, 0, 0);
+
+            // Move drawing position
+            xPos = (xPos + 1) % spectrogramWidth;
+
+            // Draw current position line
+            stroke(0, 255, 0);
+            line(xPos, 0, xPos, spectrogramHeight);
+        }
+
+        function saveSpectrogram() {
+            saveCanvas('spectrogram', 'png');
+        }
+
+        function clearSpectrogram() {
+            spectrogramImage = createImage(spectrogramWidth, spectrogramHeight);
+            spectrogramImage.loadPixels();
+            xPos = 0;
+        }
+    </script>
+</body>
+</html>
