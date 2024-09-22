@@ -4,83 +4,104 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Real-time Spectrogram</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
-        canvas { border: 1px solid #ccc; }
+        #spectrogram { width: 100%; max-width: 800px; height: 400px; }
         button { margin: 10px 5px; padding: 5px 10px; }
     </style>
 </head>
 <body>
     <h1>Real-time Spectrogram</h1>
-    <div id="canvas-container"></div>
-    <button id="saveButton">Save Image</button>
-    <button id="clearButton">Clear Spectrogram</button>
+    <button id="startButton">Start</button>
+    <button id="stopButton" disabled>Stop</button>
+    <canvas id="spectrogram"></canvas>
 
     <script>
-        let mic, fft;
-        let spectrogramImage;
-        const fftSize = 1024;
-        const numBands = 256;
-        const spectrogramWidth = 800;
-        const spectrogramHeight = 400;
-        let xPos = 0;
+        let audioContext;
+        let analyser;
+        let dataArray;
+        let source;
+        let animationId;
+        let chart;
 
-        function setup() {
-            const canvas = createCanvas(spectrogramWidth, spectrogramHeight);
-            canvas.parent('canvas-container');
-            
-            // Initialize microphone and FFT
-            mic = new p5.AudioIn();
-            mic.start();
-            fft = new p5.FFT(0.8, fftSize);
-            fft.setInput(mic);
+        const startButton = document.getElementById('startButton');
+        const stopButton = document.getElementById('stopButton');
 
-            // Create spectrogram image
-            spectrogramImage = createImage(spectrogramWidth, spectrogramHeight);
-            spectrogramImage.loadPixels();
+        startButton.addEventListener('click', startSpectrogram);
+        stopButton.addEventListener('click', stopSpectrogram);
 
-            // Set up buttons
-            select('#saveButton').mousePressed(saveSpectrogram);
-            select('#clearButton').mousePressed(clearSpectrogram);
+        function startSpectrogram() {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioContext.createAnalyser();
+            analyser.fftSize = 2048;
+            const bufferLength = analyser.frequencyBinCount;
+            dataArray = new Uint8Array(bufferLength);
+
+            navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+                .then(stream => {
+                    source = audioContext.createMediaStreamSource(stream);
+                    source.connect(analyser);
+                    createChart();
+                    updateSpectrogram();
+                    startButton.disabled = true;
+                    stopButton.disabled = false;
+                })
+                .catch(err => console.error('Error accessing microphone:', err));
         }
 
-        function draw() {
-            background(220);
-
-            // Perform FFT analysis
-            fft.analyze();
-            const spectrum = fft.logAverages(fft.getOctaveBands(numBands));
-
-            // Map spectrum to colors and draw on spectrogram
-            for (let i = 0; i < spectrum.length; i++) {
-                const y = map(i, 0, spectrum.length, spectrogramHeight, 0);
-                const intensity = map(spectrum[i], 0, 255, 0, 1);
-                const c = lerpColor(color(0, 0, 0), color(255, 0, 0), intensity);
-                spectrogramImage.set(xPos, y, c);
+        function stopSpectrogram() {
+            cancelAnimationFrame(animationId);
+            if (source) {
+                source.disconnect();
             }
-
-            // Update spectrogram image
-            spectrogramImage.updatePixels();
-            image(spectrogramImage, 0, 0);
-
-            // Move drawing position
-            xPos = (xPos + 1) % spectrogramWidth;
-
-            // Draw current position line
-            stroke(0, 255, 0);
-            line(xPos, 0, xPos, spectrogramHeight);
+            if (audioContext) {
+                audioContext.close();
+            }
+            startButton.disabled = false;
+            stopButton.disabled = true;
         }
 
-        function saveSpectrogram() {
-            saveCanvas('spectrogram', 'png');
+        function createChart() {
+            const ctx = document.getElementById('spectrogram').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Array.from({ length: analyser.frequencyBinCount }, (_, i) => i),
+                    datasets: [{
+                        label: 'Frequency Intensity',
+                        data: Array(analyser.frequencyBinCount).fill(0),
+                        backgroundColor: 'rgba(255, 99, 132, 0.8)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    animation: false,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Frequency Bin'
+                            }
+                        },
+                        y: {
+                            title: {
+                                display: true,
+                                text: 'Intensity'
+                            },
+                            min: 0,
+                            max: 255
+                        }
+                    }
+                }
+            });
         }
 
-        function clearSpectrogram() {
-            spectrogramImage = createImage(spectrogramWidth, spectrogramHeight);
-            spectrogramImage.loadPixels();
-            xPos = 0;
+        function updateSpectrogram() {
+            animationId = requestAnimationFrame(updateSpectrogram);
+            analyser.getByteFrequencyData(dataArray);
+            chart.data.datasets[0].data = Array.from(dataArray);
+            chart.update();
         }
     </script>
 </body>
