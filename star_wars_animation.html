@@ -42,6 +42,18 @@
     <script>
         const canvas = document.getElementById('starfield');
         const ctx = canvas.getContext('2d');
+        const spectrumCanvas = document.getElementById('spectrum');
+        const spectrumCtx = spectrumCanvas.getContext('2d');
+
+        function updateSpectrum(audioData) {
+            spectrumCtx.clearRect(0, 0, spectrumCanvas.width, spectrumCanvas.height);
+            spectrumCtx.fillStyle = 'rgba(0, 255, 0, 0.5)';
+            const barWidth = spectrumCanvas.width / audioData.length;
+            for (let i = 0; i < audioData.length; i++) {
+                const barHeight = (audioData[i] / 255) * spectrumCanvas.height;
+                spectrumCtx.fillRect(i * barWidth, spectrumCanvas.height - barHeight, barWidth, barHeight);
+            }
+        }
 
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;

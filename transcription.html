@@ -135,12 +135,16 @@
             const centerY = canvas.height / 2;
             const size = Math.min(canvas.width, canvas.height) / 4;
 
-            if (command.includes('show rectangle')) {
+            if (command.includes('show rectangle') || command.includes('draw rectangle')) {
                 ctx.strokeRect(centerX - size / 2, centerY - size / 2, size, size);
-            } else if (command.includes('show circle')) {
+                addToChatHistory('System', 'Rectangle drawn on the canvas.');
+            } else if (command.includes('show circle') || command.includes('draw circle')) {
                 ctx.beginPath();
                 ctx.arc(centerX, centerY, size / 2, 0, Math.PI * 2);
                 ctx.stroke();
+                addToChatHistory('System', 'Circle drawn on the canvas.');
+            } else if (command.toLowerCase().startsWith('generate image of ')) {
+                generateImage(command.replace('generate image of ', '').trim());
             }
         }
 
