@@ -310,9 +310,10 @@
         }
 
         createSpectrogram();
-        // OpenAI API integration
+        // API integration
         const apiKeyInput = document.getElementById('api-key-input');
-        apiKeyInput.value = API_KEY; // Set the API key from config.js
+        let API_KEY = localStorage.getItem('apiKey') || ''; // Get API key from local storage
+        apiKeyInput.value = API_KEY;
         const chatHistory = document.getElementById('chat-history');
         const rightPanel = document.getElementById('right-panel');
         const helpButton = document.getElementById('help-button');
@@ -418,25 +419,40 @@
         async function getAIResponse(message) {
             updateDebugBox('Fetching AI response...');
             if (!API_KEY) {
-                return 'Please set up your API key in the config.js file.';
+                return 'Please set up your API key in the settings.';
             }
 
             try {
-                const response = await fetch('https://api.aimlapi.com/chat/completions', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${API_KEY}`
-                    },
-                    body: JSON.stringify({
-                        model: 'gpt-3.5-turbo',
-                        messages: [{ role: 'user', content: message }]
-                    })
-                });
+                let response;
+                if (useOpenAI) {
+                    response = await fetch('https://api.openai.com/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${API_KEY}`
+                        },
+                        body: JSON.stringify({
+                            model: 'gpt-3.5-turbo',
+                            messages: [{ role: 'user', content: message }]
+                        })
+                    });
+                } else {
+                    // AIML API call (replace with actual AIML API endpoint and parameters)
+                    response = await fetch('https://api.aimlapi.com/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${API_KEY}`
+                        },
+                        body: JSON.stringify({
+                            message: message
+                        })
+                    });
+                }
 
                 const data = await response.json();
                 updateDebugBox('AI response received');
-                return data.choices[0].message.content;
+                return useOpenAI ? data.choices[0].message.content : data.response;
             } catch (error) {
                 console.error('Error:', error);
                 updateDebugBox('Error fetching AI response');
@@ -719,8 +735,8 @@
         // Save settings
         const saveSettingsButton = document.getElementById('save-settings');
         saveSettingsButton.addEventListener('click', () => {
-            const apiKey = document.getElementById('api-key-input').value;
-            localStorage.setItem('apiKey', apiKey);
+            API_KEY = document.getElementById('api-key-input').value;
+            localStorage.setItem('apiKey', API_KEY);
             settingsBox.style.display = 'none';
             alert('Settings saved!');
         });
