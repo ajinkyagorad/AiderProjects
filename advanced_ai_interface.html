@@ -519,30 +519,40 @@
                 const imageUrl = data.data[0].url;
 
                 if (imageUrl) {
-                    const imgElement = document.createElement('img');
-                    imgElement.src = imageUrl;
-                    imgElement.alt = prompt;
-                    imgElement.style.maxWidth = '100%';
-                    imgElement.style.height = 'auto';
-                    imgElement.style.display = 'block';
-                    imgElement.style.margin = '10px 0';
-                    imgElement.style.opacity = '0';
-                    imgElement.style.transition = 'opacity 1s ease-in-out';
-            
-                    addToChatHistory('AI', 'Image generated:');
-                    chatHistory.lastElementChild.appendChild(imgElement.cloneNode());
-            
-                    // Add image to canvas container
-                    const canvasContainer = document.getElementById('canvas-container');
-                    canvasContainer.appendChild(imgElement);
-            
-                    // Fade in the image
-                    setTimeout(() => {
-                        imgElement.style.opacity = '1';
-                    }, 100);
+                    // Create image element for canvas
+                    const canvasImg = new Image();
+                    canvasImg.src = imageUrl;
+                    canvasImg.onload = function() {
+                        // Clear the drawing canvas
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        
+                        // Calculate aspect ratio to fit image within canvas
+                        const scale = Math.min(canvas.width / canvasImg.width, canvas.height / canvasImg.height);
+                        const x = (canvas.width / 2) - (canvasImg.width / 2) * scale;
+                        const y = (canvas.height / 2) - (canvasImg.height / 2) * scale;
+                        
+                        // Draw resized image on canvas
+                        ctx.drawImage(canvasImg, x, y, canvasImg.width * scale, canvasImg.height * scale);
+                    };
 
-                    // Clear the drawing canvas
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    // Create smaller image for chat history
+                    const chatImg = document.createElement('img');
+                    chatImg.src = imageUrl;
+                    chatImg.alt = prompt;
+                    chatImg.style.maxWidth = '200px';
+                    chatImg.style.height = 'auto';
+                    chatImg.style.display = 'block';
+                    chatImg.style.margin = '10px 0';
+                    chatImg.style.opacity = '0';
+                    chatImg.style.transition = 'opacity 1s ease-in-out';
+
+                    addToChatHistory('AI', 'Image generated:');
+                    chatHistory.lastElementChild.appendChild(chatImg);
+
+                    // Fade in the chat history image
+                    setTimeout(() => {
+                        chatImg.style.opacity = '1';
+                    }, 100);
             
                     updateDebugBox('Image generated successfully');
                 } else {
