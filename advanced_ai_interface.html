@@ -16,6 +16,24 @@
             font-size: 18px;
             overflow: hidden;
         }
+        #transcription-container {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        #transcription {
+            flex: 1;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        #spectrum {
+            width: 100px;
+            height: 50px;
+            margin-left: 10px;
+            background-color: rgba(0, 255, 0, 0.1);
+            border-radius: 5px;
+        }
         @keyframes fadeInOut {
             0%, 100% { opacity: 0.3; }
             50% { opacity: 1; }
@@ -198,7 +216,10 @@
         <div id="left-panel">
             <input type="password" id="api-key-input" placeholder="Enter your OpenAI API key">
             <div id="transcription-container">
-                <div id="transcription"></div>
+                <div id="transcription-container">
+                    <div id="transcription"></div>
+                    <canvas id="spectrum"></canvas>
+                </div>
                 <canvas id="spectrogram"></canvas>
             </div>
             <div id="canvas-container">
@@ -390,10 +411,10 @@
                         'Authorization': `Bearer ${apiKey}`
                     },
                     body: JSON.stringify({
+                        model: "dall-e-3",
                         prompt: prompt,
                         n: 1,
-                        size: "256x256",
-                        response_format: "url"
+                        size: "1024x1024"
                     })
                 });
 
@@ -423,11 +444,13 @@
         // Removed Flux-based rapid generator and its usage
 
         function addToChatHistory(role, message) {
-            chatMessages.push({ role, message });
-            const messageElement = document.createElement('p');
-            messageElement.innerHTML = `<strong>${role}:</strong> ${message}`;
-            chatHistory.appendChild(messageElement);
-            chatHistory.scrollTop = chatHistory.scrollHeight;
+            if (message.trim() !== '') {
+                chatMessages.push({ role, message });
+                const messageElement = document.createElement('p');
+                messageElement.innerHTML = `<strong>${role}:</strong> ${message}`;
+                chatHistory.appendChild(messageElement);
+                chatHistory.scrollTop = chatHistory.scrollHeight;
+            }
         }
 
         function summarizeChat() {
