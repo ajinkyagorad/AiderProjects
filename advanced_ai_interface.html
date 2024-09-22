@@ -37,24 +37,35 @@
             overflow-y: auto;
         }
         #chat-history {
-            flex: 1;
+            height: 50vh;
             overflow-y: auto;
             border: 1px solid #333;
             padding: 10px;
             margin-bottom: 10px;
             font-size: 14px;
         }
+        #chat-history::-webkit-scrollbar {
+            width: 8px;
+        }
+        #chat-history::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+        }
+        #chat-history::-webkit-scrollbar-thumb {
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 4px;
+        }
         button {
-            padding: 5px 10px;
-            background-color: #333;
+            padding: 3px 6px;
+            background-color: rgba(51, 51, 51, 0.7);
             color: #fff;
-            border: 1px solid #555;
+            border: 1px solid rgba(85, 85, 85, 0.7);
             cursor: pointer;
-            font-size: 14px;
+            font-size: 12px;
             margin: 2px;
+            transition: background-color 0.3s;
         }
         button:hover {
-            background-color: #444;
+            background-color: rgba(68, 68, 68, 0.7);
         }
         #api-key-input {
             width: 100%;
@@ -130,6 +141,14 @@
             margin-left: 10px;
             background-color: rgba(0, 255, 0, 0.1);
             border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        .spectrogram-bar {
+            width: 2px;
+            background-color: rgba(0, 255, 0, 0.5);
+            transition: height 0.1s ease;
         }
         #debug-box {
             position: fixed;
@@ -149,6 +168,27 @@
         }
         .old-text {
             color: #888;
+        }
+        #control-buttons {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 5px;
+        }
+        #control-buttons button,
+        #control-buttons select {
+            background-color: rgba(51, 51, 51, 0.7);
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #control-buttons button:hover,
+        #control-buttons select:hover {
+            background-color: rgba(68, 68, 68, 0.7);
         }
     </style>
 </head>
@@ -170,13 +210,15 @@
         </div>
     </div>
     <button id="help-button">Help</button>
-    <button id="fullscreen-button">Fullscreen</button>
-    <button id="toggle-ai-inference">Toggle AI Inference</button>
-    <select id="theme-selector">
-        <option value="dark">Dark Theme</option>
-        <option value="light">Light Theme</option>
-        <option value="blue">Blue Theme</option>
-    </select>
+    <div id="control-buttons">
+        <button id="fullscreen-button">Fullscreen</button>
+        <button id="toggle-ai-inference">Toggle AI</button>
+        <select id="theme-selector">
+            <option value="dark">Dark</option>
+            <option value="light">Light</option>
+            <option value="blue">Blue</option>
+        </select>
+    </div>
     <div id="help-panel">
         <div id="help-content">
             <h2>Help Instructions</h2>
@@ -200,17 +242,25 @@
         spectrogramCanvas.width = 100;
         spectrogramCanvas.height = 50;
 
-        function updateSpectrogram(audioData) {
-            const barWidth = spectrogramCanvas.width / audioData.length;
-            spectrogramCtx.clearRect(0, 0, spectrogramCanvas.width, spectrogramCanvas.height);
-
-            for (let i = 0; i < audioData.length; i++) {
-                const barHeight = (audioData[i] / 255) * spectrogramCanvas.height;
-                const hue = (i / audioData.length) * 360;
-                spectrogramCtx.fillStyle = `hsl(${hue}, 100%, 50%)`;
-                spectrogramCtx.fillRect(i * barWidth, spectrogramCanvas.height - barHeight, barWidth, barHeight);
+        function createSpectrogram() {
+            const spectrogram = document.getElementById('spectrogram');
+            for (let i = 0; i < 50; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'spectrogram-bar';
+                spectrogram.appendChild(bar);
             }
         }
+
+        function updateSpectrogram(audioData) {
+            const bars = document.querySelectorAll('.spectrogram-bar');
+            const step = Math.floor(audioData.length / bars.length);
+            for (let i = 0; i < bars.length; i++) {
+                const value = audioData[i * step] / 255;
+                bars[i].style.height = `${value * 100}%`;
+            }
+        }
+
+        createSpectrogram();
         // OpenAI API integration
         const apiKeyInput = document.getElementById('api-key-input');
         const chatHistory = document.getElementById('chat-history');
@@ -346,6 +396,10 @@
                     })
                 });
 
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
                 const data = await response.json();
                 if (data.data && data.data[0].url) {
                     const imgElement = document.createElement('img');
@@ -356,13 +410,12 @@
                     chatHistory.lastElementChild.appendChild(imgElement);
                     updateDebugBox('Image generated successfully');
                 } else {
-                    addToChatHistory('System', 'Failed to generate image.');
-                    updateDebugBox('Failed to generate image');
+                    throw new Error('No image URL in the response');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                addToChatHistory('System', 'An error occurred while generating the image.');
-                updateDebugBox('Error generating image');
+                addToChatHistory('System', `An error occurred while generating the image: ${error.message}`);
+                updateDebugBox(`Error generating image: ${error.message}`);
             }
         }
 
