@@ -42,14 +42,19 @@
             border: 1px solid #333;
             padding: 10px;
             margin-bottom: 10px;
+            font-size: 14px;
         }
         button {
-            padding: 10px;
-            background-color: #0066cc;
+            padding: 5px 10px;
+            background-color: #333;
             color: #fff;
-            border: none;
+            border: 1px solid #555;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
+            margin: 2px;
+        }
+        button:hover {
+            background-color: #444;
         }
         #api-key-input {
             width: 100%;
@@ -108,10 +113,22 @@
             height: 100%;
             z-index: -1;
         }
+        #transcription-container {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
         #transcription {
+            flex: 1;
             background-color: rgba(255, 255, 255, 0.1);
             padding: 10px;
-            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+        #spectrogram {
+            width: 100px;
+            height: 50px;
+            margin-left: 10px;
+            background-color: rgba(0, 255, 0, 0.1);
             border-radius: 5px;
         }
         #debug-box {
@@ -140,7 +157,10 @@
     <div id="main-container">
         <div id="left-panel">
             <input type="password" id="api-key-input" placeholder="Enter your OpenAI API key">
-            <div id="transcription"></div>
+            <div id="transcription-container">
+                <div id="transcription"></div>
+                <canvas id="spectrogram"></canvas>
+            </div>
             <div id="canvas-container">
                 <canvas id="drawing-canvas"></canvas>
             </div>
@@ -174,6 +194,23 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
+        // Spectrogram setup
+        const spectrogramCanvas = document.getElementById('spectrogram');
+        const spectrogramCtx = spectrogramCanvas.getContext('2d');
+        spectrogramCanvas.width = 100;
+        spectrogramCanvas.height = 50;
+
+        function updateSpectrogram(audioData) {
+            const barWidth = spectrogramCanvas.width / audioData.length;
+            spectrogramCtx.clearRect(0, 0, spectrogramCanvas.width, spectrogramCanvas.height);
+
+            for (let i = 0; i < audioData.length; i++) {
+                const barHeight = (audioData[i] / 255) * spectrogramCanvas.height;
+                const hue = (i / audioData.length) * 360;
+                spectrogramCtx.fillStyle = `hsl(${hue}, 100%, 50%)`;
+                spectrogramCtx.fillRect(i * barWidth, spectrogramCanvas.height - barHeight, barWidth, barHeight);
+            }
+        }
         // OpenAI API integration
         const apiKeyInput = document.getElementById('api-key-input');
         const chatHistory = document.getElementById('chat-history');
@@ -293,6 +330,8 @@
                 return;
             }
 
+            addToChatHistory('System', 'Generating image... Please wait.');
+
             try {
                 const response = await fetch('https://api.openai.com/v1/images/generations', {
                     method: 'POST',
@@ -313,7 +352,7 @@
                     imgElement.src = data.data[0].url;
                     imgElement.alt = prompt;
                     imgElement.style.maxWidth = '100%';
-                    addToChatHistory('AI', '');
+                    addToChatHistory('AI', 'Image generated:');
                     chatHistory.lastElementChild.appendChild(imgElement);
                     updateDebugBox('Image generated successfully');
                 } else {
@@ -392,6 +431,19 @@
             recognition.continuous = true;
             recognition.interimResults = true;
 
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const analyser = audioContext.createAnalyser();
+            analyser.fftSize = 256;
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    const source = audioContext.createMediaStreamSource(stream);
+                    source.connect(analyser);
+                })
+                .catch(err => console.error('Error accessing microphone:', err));
+
             recognition.onstart = () => {
                 isListening = true;
                 updateDebugBox('Voice recognition started');
@@ -412,6 +464,10 @@
 
                 transcriptionDiv.innerHTML = '<span class="fading-text">' + finalTranscript + '</span><i style="color: #999;">' + interimTranscript + '</i>';
                 updateChatHistory(finalTranscript);
+
+                // Update spectrogram
+                analyser.getByteFrequencyData(dataArray);
+                updateSpectrogram(dataArray);
             };
 
             recognition.onend = () => {
@@ -420,6 +476,14 @@
             };
 
             recognition.start();
+
+            // Continuously update spectrogram
+            function updateSpectrogramLoop() {
+                analyser.getByteFrequencyData(dataArray);
+                updateSpectrogram(dataArray);
+                requestAnimationFrame(updateSpectrogramLoop);
+            }
+            updateSpectrogramLoop();
         }
 
         function updateChatHistory(text) {
