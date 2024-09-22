@@ -156,30 +156,28 @@
             z-index: -1;
         }
         #transcription-container {
-            display: flex;
-            align-items: flex-start;
+            position: relative;
             margin-bottom: 10px;
         }
         #transcription {
-            flex: 1;
             background-color: rgba(255, 255, 255, 0.1);
             padding: 10px;
             border-radius: 5px;
+            position: relative;
+            z-index: 2;
         }
         #spectrogram {
-            width: 100px;
-            height: 50px;
-            margin-left: 10px;
-            background-color: rgba(0, 255, 0, 0.1);
-            border-radius: 5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.3;
+            z-index: 1;
         }
-        .spectrogram-bar {
-            width: 2px;
-            background-color: rgba(0, 255, 0, 0.5);
-            transition: height 0.1s ease;
+        #settings-box {
+            position: relative;
+            z-index: 1000;
         }
         #debug-box {
             position: fixed;
@@ -236,10 +234,7 @@
             </div>
             <button id="toggle-settings">Toggle Settings</button>
             <div id="transcription-container">
-                <div id="transcription-container">
-                    <div id="transcription"></div>
-                    <canvas id="spectrum"></canvas>
-                </div>
+                <div id="transcription"></div>
                 <canvas id="spectrogram"></canvas>
             </div>
             <div id="canvas-container">
@@ -282,35 +277,22 @@
         // Spectrogram setup
         const spectrogramCanvas = document.getElementById('spectrogram');
         const spectrogramCtx = spectrogramCanvas.getContext('2d');
-        spectrogramCanvas.width = 100;
-        spectrogramCanvas.height = 50;
-
-        function createSpectrogram() {
-            const spectrogram = document.getElementById('spectrogram');
-            for (let i = 0; i < 50; i++) {
-                const bar = document.createElement('div');
-                bar.className = 'spectrogram-bar';
-                spectrogram.appendChild(bar);
-            }
-        }
+        spectrogramCanvas.width = spectrogramCanvas.offsetWidth;
+        spectrogramCanvas.height = spectrogramCanvas.offsetHeight;
 
         function updateSpectrogram(audioData) {
-            const canvas = document.getElementById('spectrum');
-            const ctx = canvas.getContext('2d');
-            const width = canvas.width;
-            const height = canvas.height;
+            const width = spectrogramCanvas.width;
+            const height = spectrogramCanvas.height;
             const barWidth = width / audioData.length;
 
-            ctx.clearRect(0, 0, width, height);
-            ctx.fillStyle = 'rgb(0, 255, 0)';
+            spectrogramCtx.clearRect(0, 0, width, height);
+            spectrogramCtx.fillStyle = 'rgba(0, 255, 0, 0.5)';
 
             for (let i = 0; i < audioData.length; i++) {
                 const barHeight = (audioData[i] / 255) * height;
-                ctx.fillRect(i * barWidth, height - barHeight, barWidth, barHeight);
+                spectrogramCtx.fillRect(i * barWidth, height - barHeight, barWidth, barHeight);
             }
         }
-
-        createSpectrogram();
         // API integration
         const openaiApiKeyInput = document.getElementById('openai-api-key-input');
         const aimlApiKeyInput = document.getElementById('aiml-api-key-input');
