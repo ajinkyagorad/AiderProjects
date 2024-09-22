@@ -16,21 +16,6 @@
             font-size: 18px;
             overflow: hidden;
         }
-        #image-box {
-            width: 100%;
-            max-height: 300px;
-            border: 1px solid #333;
-            background-color: rgba(0, 0, 0, 0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            margin-top: 10px;
-        }
-        #image-box img {
-            max-width: 100%;
-            max-height: 100%;
-        }
         #chat-history {
             font-size: 12px;
         }
@@ -70,12 +55,12 @@
             overflow-y: auto;
         }
         #chat-history {
-            height: 50vh;
+            height: 40vh;
             overflow-y: auto;
             border: 1px solid #333;
             padding: 10px;
             margin-bottom: 10px;
-            font-size: 14px;
+            font-size: 12px;
         }
         #chat-history::-webkit-scrollbar {
             width: 8px;
@@ -207,10 +192,18 @@
         #control-buttons {
             position: fixed;
             top: 10px;
-            right: 10px;
+            right: -200px;
             display: flex;
+            flex-direction: column;
             gap: 5px;
             z-index: 1001;
+            background-color: rgba(51, 51, 51, 0.7);
+            padding: 10px;
+            border-radius: 10px 0 0 10px;
+            transition: right 0.3s ease-in-out;
+        }
+        #control-buttons:hover {
+            right: 0;
         }
         #control-buttons button,
         #control-buttons select {
@@ -263,7 +256,6 @@
             <option value="blue">Blue</option>
         </select>
     </div>
-    <div id="image-box"></div>
     <div id="help-panel">
         <div id="help-content">
             <h2>Help Instructions</h2>
@@ -433,22 +425,39 @@
 
         async function getAIResponse(message) {
             updateDebugBox('Fetching AI response...');
-            if (!OPENAI_API_KEY) {
-                return 'Please set up your OpenAI API key in the settings.';
+            const selectedAPI = useOpenAI ? 'OpenAI' : 'AIML';
+            const apiKey = useOpenAI ? OPENAI_API_KEY : AIML_API_KEY;
+            
+            if (!apiKey) {
+                return `Please set up your ${selectedAPI} API key in the settings.`;
             }
 
             try {
-                const response = await fetch('https://api.openai.com/v1/chat/completions', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${OPENAI_API_KEY}`
-                    },
-                    body: JSON.stringify({
-                        model: 'gpt-3.5-turbo',
-                        messages: [{ role: 'user', content: message }]
-                    })
-                });
+                let response;
+                if (useOpenAI) {
+                    response = await fetch('https://api.openai.com/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: 'gpt-3.5-turbo',
+                            messages: [{ role: 'user', content: message }]
+                        })
+                    });
+                } else {
+                    // Implement AIML API call here
+                    // This is a placeholder, replace with actual AIML API call
+                    response = await fetch('https://aiml-api-endpoint.com', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
+                        },
+                        body: JSON.stringify({ message: message })
+                    });
+                }
 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -456,12 +465,12 @@
 
                 const data = await response.json();
                 updateDebugBox('AI response received');
-                const aiResponse = data.choices[0].message.content;
+                const aiResponse = useOpenAI ? data.choices[0].message.content : data.response;
                 
                 // Add AI response to canvas container
                 const canvasContainer = document.getElementById('canvas-container');
                 const responseElement = document.createElement('p');
-                responseElement.textContent = aiResponse;
+                await typeWriter(responseElement, aiResponse);
                 canvasContainer.appendChild(responseElement);
 
                 return aiResponse;
@@ -469,6 +478,13 @@
                 console.error('Error:', error);
                 updateDebugBox('Error fetching AI response');
                 return 'An error occurred while fetching the AI response.';
+            }
+        }
+
+        async function typeWriter(element, text, speed = 50) {
+            for (let i = 0; i < text.length; i++) {
+                element.textContent += text.charAt(i);
+                await new Promise(resolve => setTimeout(resolve, speed));
             }
         }
 
@@ -492,7 +508,7 @@
                         model: "dall-e-3",
                         prompt: prompt,
                         n: 1,
-                        size: "1024x1024"
+                        size: "512x512"  // Reduced size for better performance
                     })
                 });
 
@@ -508,17 +524,20 @@
                     imgElement.src = imageUrl;
                     imgElement.alt = prompt;
                     imgElement.style.maxWidth = '100%';
+                    imgElement.style.opacity = '0';
+                    imgElement.style.transition = 'opacity 1s ease-in-out';
+                    
                     addToChatHistory('AI', 'Image generated:');
                     chatHistory.lastElementChild.appendChild(imgElement);
-                    
-                    // Update image box
-                    const imageBox = document.getElementById('image-box');
-                    imageBox.innerHTML = '';
-                    imageBox.appendChild(imgElement.cloneNode());
                     
                     // Add image to canvas container
                     const canvasContainer = document.getElementById('canvas-container');
                     canvasContainer.appendChild(imgElement.cloneNode());
+                    
+                    // Fade in the image
+                    setTimeout(() => {
+                        imgElement.style.opacity = '1';
+                    }, 100);
                     
                     updateDebugBox('Image generated successfully');
                 } else {
@@ -535,9 +554,10 @@
 
         function addToChatHistory(role, message) {
             if (message && message.trim() !== '') {
+                const aiModel = useOpenAI ? 'OpenAI' : 'AIML';
                 chatMessages.push({ role, message });
                 const messageElement = document.createElement('p');
-                messageElement.innerHTML = `<strong>${role}:</strong> ${message}`;
+                messageElement.innerHTML = `<strong>${role}${role === 'AI' ? `(${aiModel})` : ''}:</strong> ${message}`;
                 chatHistory.appendChild(messageElement);
                 chatHistory.scrollTop = chatHistory.scrollHeight;
             }
