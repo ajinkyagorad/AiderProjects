@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Real-time Spectrogram</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix@1.1.1/dist/chartjs-chart-matrix.min.js"></script>
     <style>
         body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
         .chart-container { display: flex; width: 100%; max-width: 1200px; height: 400px; }
@@ -108,12 +109,17 @@
 
             const spectrogramCtx = document.getElementById('spectrogramChart').getContext('2d');
             spectrogramChart = new Chart(spectrogramCtx, {
-                type: 'heatmap',
+                type: 'matrix',
                 data: {
                     datasets: [{
                         data: [],
-                        width: 1,
-                        height: analyser.frequencyBinCount
+                        width: 100,
+                        height: analyser.frequencyBinCount,
+                        backgroundColor: (ctx) => {
+                            const value = ctx.dataset.data[ctx.dataIndex].v;
+                            const alpha = value / 255;
+                            return `rgba(255, 99, 132, ${alpha})`;
+                        }
                     }]
                 },
                 options: {
@@ -127,21 +133,21 @@
                         x: {
                             type: 'linear',
                             position: 'bottom',
+                            min: 0,
+                            max: 99,
                             title: {
                                 display: true,
                                 text: 'Time'
-                            },
-                            min: 0,
-                            max: 100
+                            }
                         },
                         y: {
                             type: 'linear',
-                            position: 'left',
+                            min: 0,
+                            max: analyser.frequencyBinCount - 1,
                             title: {
                                 display: true,
                                 text: 'Frequency Bin'
-                            },
-                            reverse: true
+                            }
                         }
                     }
                 }
