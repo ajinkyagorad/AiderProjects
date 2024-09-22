@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Clone</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+        }
+        header {
+            background-color: #fff;
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .logo {
+            color: #ff0000;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .search-bar {
+            flex-grow: 1;
+            margin: 0 20px;
+        }
+        .search-bar input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 20px;
+        }
+        .login-btn {
+            background-color: #065fd4;
+            color: #fff;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 2px;
+            cursor: pointer;
+        }
+        main {
+            padding: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .video-card {
+            background-color: #fff;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .video-thumbnail {
+            width: 100%;
+            height: 140px;
+            background-color: #ddd;
+        }
+        .video-info {
+            padding: 10px;
+        }
+        .video-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .video-channel {
+            color: #606060;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">YouTube</div>
+        <div class="search-bar">
+            <input type="text" placeholder="Search">
+        </div>
+        <button class="login-btn">Sign In</button>
+    </header>
+    <main>
+        <div class="video-card">
+            <div class="video-thumbnail"></div>
+            <div class="video-info">
+                <div class="video-title">Amazing Video Title</div>
+                <div class="video-channel">Channel Name</div>
+            </div>
+        </div>
+        <div class="video-card">
+            <div class="video-thumbnail"></div>
+            <div class="video-info">
+                <div class="video-title">Interesting Topic Explained</div>
+                <div class="video-channel">Educational Channel</div>
+            </div>
+        </div>
+        <div class="video-card">
+            <div class="video-thumbnail"></div>
+            <div class="video-info">
+                <div class="video-title">Funny Cat Compilation</div>
+                <div class="video-channel">Pet Lovers</div>
+            </div>
+        </div>
+        <div class="video-card">
+            <div class="video-thumbnail"></div>
+            <div class="video-info">
+                <div class="video-title">Latest Tech Review</div>
+                <div class="video-channel">Tech Guru</div>
+            </div>
+        </div>
+    </main>
+    <script>
+        document.querySelector('.login-btn').addEventListener('click', function() {
+            alert('This would typically redirect to YouTube\'s login page.');
+        });
+    </script>
+</body>
+</html>
