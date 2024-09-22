@@ -1,16 +1,17 @@
-import lightningchart as lc
+from lightningchart import (
+    LightningChart, ChartXY, Chart3D, LegendBoxBuilders, AxisScrollStrategies,
+    SolidLine, ColorPalettes, UIElementBuilders, UIOrigins, FontSettings, AutoCursorModes
+)
 import time
 import math
 import random
 
 def create_dashboard():
-    # Create a Dashboard instance
-    dashboard = lc.Dashboard(
-        {
-            "title": "Real-time Multi-Chart Dashboard",
-            "theme": lc.Themes.dark
-        }
-    )
+    # Create a LightningChart instance
+    chart = LightningChart()
+
+    # Create a Dashboard
+    dashboard = chart.add_dashboard()
 
     # Add multiple ChartXY to the dashboard
     chart_xy1 = dashboard.create_chart_xy()
@@ -25,16 +26,16 @@ def create_dashboard():
     for chart in [chart_xy1, chart_xy2]:
         chart.get_default_axis_x().set_title("Time (s)")
         chart.get_default_axis_y().set_title("Value")
-        chart.get_default_axis_x().set_scroll_strategy(lc.AxisScrollStrategies.progressive)
+        chart.get_default_axis_x().set_scroll_strategy(AxisScrollStrategies.progressive)
 
     # Add line series to each 2D chart
     line_series1 = chart_xy1.add_line_series()
     line_series1.set_name("Sine Wave")
-    line_series1.set_stroke(lc.SolidLine(lc.ColorPalettes.arction(0), 2))
+    line_series1.set_stroke(SolidLine(ColorPalettes.arction(0), 2))
 
     line_series2 = chart_xy2.add_line_series()
     line_series2.set_name("Cosine Wave")
-    line_series2.set_stroke(lc.SolidLine(lc.ColorPalettes.arction(1), 2))
+    line_series2.set_stroke(SolidLine(ColorPalettes.arction(1), 2))
 
     # Add point series to 3D chart
     point_series = chart_3d.add_point_series()
@@ -42,31 +43,31 @@ def create_dashboard():
 
     # Add legend boxes
     for chart, series in [(chart_xy1, line_series1), (chart_xy2, line_series2)]:
-        legend = chart.add_legend_box(lc.LegendBoxBuilders.horizontal_legend_box)
+        legend = chart.add_legend_box(LegendBoxBuilders.horizontal_legend_box)
         legend.add(series)
 
     # Add UI elements for displaying current values
     value_display1 = chart_xy1.add_ui_element(
-        lc.UIElementBuilders.text_box_builder
+        UIElementBuilders.text_box
         .set_text("Current Sine Value")
-        .set_origin(lc.UIOrigins.right_top)
-        .set_margin(5)
-        .set_font_settings(lc.FontSettings.from_font_size(14))
+        .set_origin(UIOrigins.right_top)
+        .set_margin({ 'top': 5, 'right': 5 })
+        .set_font_size(14)
     )
 
     value_display2 = chart_xy2.add_ui_element(
-        lc.UIElementBuilders.text_box_builder
+        UIElementBuilders.text_box
         .set_text("Current Cosine Value")
-        .set_origin(lc.UIOrigins.right_top)
-        .set_margin(5)
-        .set_font_settings(lc.FontSettings.from_font_size(14))
+        .set_origin(UIOrigins.right_top)
+        .set_margin({ 'top': 5, 'right': 5 })
+        .set_font_size(14)
     )
 
     # Enable AutoCursor for both 2D charts
-    chart_xy1.set_auto_cursor(lc.AutoCursorModes.x)
-    chart_xy2.set_auto_cursor(lc.AutoCursorModes.x)
+    chart_xy1.set_auto_cursor(AutoCursorModes.x)
+    chart_xy2.set_auto_cursor(AutoCursorModes.x)
 
-    return dashboard, line_series1, line_series2, point_series, value_display1, value_display2
+    return chart, line_series1, line_series2, point_series, value_display1, value_display2
 
 def generate_data():
     """Generate sine, cosine, and 3D random data points."""
@@ -82,19 +83,18 @@ def generate_data():
         time.sleep(0.01)
 
 def main():
-    dashboard, line_series1, line_series2, point_series, value_display1, value_display2 = create_dashboard()
+    chart, line_series1, line_series2, point_series, value_display1, value_display2 = create_dashboard()
     data_generator = generate_data()
 
     # Main loop to update the charts
     for t, y1, y2, x3, y3, z3 in data_generator:
-        line_series1.add_point(t, y1)
-        line_series2.add_point(t, y2)
-        point_series.add_point(x3, y3, z3)
+        line_series1.add_point({ 'x': t, 'y': y1 })
+        line_series2.add_point({ 'x': t, 'y': y2 })
+        point_series.add_point({ 'x': x3, 'y': y3, 'z': z3 })
         
         # Keep only the last 100 points for 2D charts
         if t > 100:
-            dashboard.get_charts()[0].get_default_axis_x().set_interval(t - 100, t)
-            dashboard.get_charts()[1].get_default_axis_x().set_interval(t - 100, t)
+            chart.get_default_axis_x().set_interval(t - 100, t)
         
         # Keep only the last 1000 points for 3D chart
         if point_series.get_point_count() > 1000:
@@ -103,9 +103,6 @@ def main():
         # Update the value displays
         value_display1.set_text(f"Sine: {y1:.2f}")
         value_display2.set_text(f"Cosine: {y2:.2f}")
-        
-        # Update the dashboard
-        dashboard.render()
 
 if __name__ == "__main__":
     main()
