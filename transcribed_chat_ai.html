@@ -63,7 +63,8 @@
     <div id="transcription"></div>
     <textarea id="userInput" placeholder="Or type your message here"></textarea>
     <button id="sendButton" class="button">Send to AI</button>
-    <button id="chatToAIButton" class="button">Chat to AI</button>
+    <button id="chatToAIButton" class="button">Start Continuous Chat</button>
+    <button id="toggleSpeakButton" class="button">Enable AI Speech</button>
     <div id="aiResponse"></div>
     <canvas id="canvas" width="400" height="400"></canvas>
     <div id="terminal"></div>
@@ -81,10 +82,14 @@
         const terminal = document.getElementById('terminal');
         let recognition;
         let isTranscribing = false;
+        let isContinuousChat = false;
+        let isSpeakEnabled = false;
+        let synthesis = window.speechSynthesis;
 
         startButton.addEventListener('click', toggleTranscription);
         sendButton.addEventListener('click', sendToAI);
-        chatToAIButton.addEventListener('click', chatToAI);
+        chatToAIButton.addEventListener('click', toggleContinuousChat);
+        toggleSpeakButton.addEventListener('click', toggleSpeak);
 
         function toggleTranscription() {
             if (isTranscribing) {
@@ -112,6 +117,9 @@
                         if (event.results[i].isFinal) {
                             finalTranscript += event.results[i][0].transcript;
                             processCommand(finalTranscript.trim().toLowerCase());
+                            if (isContinuousChat) {
+                                sendToAI(finalTranscript);
+                            }
                         } else {
                             interimTranscript += event.results[i][0].transcript;
                         }
@@ -156,9 +164,9 @@
             }
         }
 
-        async function sendToAI() {
+        async function sendToAI(message = null) {
             const apiKey = apiKeyInput.value;
-            const userMessage = userInput.value;
+            const userMessage = message || userInput.value;
 
             if (!apiKey) {
                 alert('Please enter your OpenAI API key');
@@ -189,7 +197,11 @@
                 const data = await response.json();
 
                 if (data.choices && data.choices.length > 0) {
-                    aiResponse.innerHTML = data.choices[0].message.content;
+                    const aiResponseText = data.choices[0].message.content;
+                    aiResponse.innerHTML = aiResponseText;
+                    if (isSpeakEnabled) {
+                        speakText(aiResponseText);
+                    }
                 } else {
                     aiResponse.innerHTML = 'Sorry, I couldn\'t generate a response.';
                 }
@@ -199,10 +211,19 @@
             }
         }
 
-        function chatToAI() {
-            const transcribedText = transcriptionDiv.innerText;
-            userInput.value = transcribedText;
-            sendToAI();
+        function toggleContinuousChat() {
+            isContinuousChat = !isContinuousChat;
+            chatToAIButton.textContent = isContinuousChat ? 'Stop Continuous Chat' : 'Start Continuous Chat';
+        }
+
+        function toggleSpeak() {
+            isSpeakEnabled = !isSpeakEnabled;
+            toggleSpeakButton.textContent = isSpeakEnabled ? 'Disable AI Speech' : 'Enable AI Speech';
+        }
+
+        function speakText(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            synthesis.speak(utterance);
         }
 
         function executeTerminalCommand(command) {
