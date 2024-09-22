@@ -38,18 +38,6 @@
             padding: 10px;
             margin-bottom: 10px;
         }
-        #input-container {
-            display: flex;
-            margin-bottom: 10px;
-        }
-        #user-input {
-            flex: 1;
-            padding: 10px;
-            background-color: #222;
-            color: #fff;
-            border: none;
-            font-size: 16px;
-        }
         button {
             padding: 10px;
             background-color: #0066cc;
@@ -121,6 +109,18 @@
             margin-bottom: 10px;
             border-radius: 5px;
         }
+        #debug-box {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            width: 200px;
+            height: 100px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border: 1px solid #333;
+            padding: 10px;
+            font-size: 12px;
+            overflow-y: auto;
+        }
     </style>
 </head>
 <body>
@@ -129,42 +129,34 @@
         <div id="left-panel">
             <input type="password" id="api-key-input" placeholder="Enter your OpenAI API key">
             <div id="transcription"></div>
-            <div id="chat-history"></div>
-            <div id="input-container">
-                <input type="text" id="user-input" placeholder="Type your message or command...">
-                <button id="send-button">Send</button>
-                <button id="voice-button">Voice</button>
-                <button id="speak-button">Speak Response</button>
-            </div>
             <div id="canvas-container">
                 <canvas id="drawing-canvas"></canvas>
             </div>
         </div>
-        <div id="right-panel"></div>
+        <div id="right-panel">
+            <div id="chat-history"></div>
+        </div>
     </div>
     <button id="help-button">Help</button>
     <div id="help-panel">
         <div id="help-content">
             <h2>Help Instructions</h2>
             <p>1. Enter your OpenAI API key at the top.</p>
-            <p>2. Type messages or use voice commands.</p>
-            <p>3. Use drawing commands like "draw rectangle" or "draw circle".</p>
-            <p>4. Say "summarize chat" to get a summary of the conversation.</p>
-            <p>5. Use "store output" to save important information as a card.</p>
-            <p>6. Say "open card 1" or "show card 2" to view saved cards.</p>
-            <p>7. Use "change color to red" to modify drawing colors.</p>
-            <p>8. Say "generate image of [description]" to create images.</p>
+            <p>2. Use voice commands for all interactions.</p>
+            <p>3. Say "draw rectangle" or "draw circle" for drawing.</p>
+            <p>4. Say "summarize chat" to get a conversation summary.</p>
+            <p>5. Use "store output" to save important information.</p>
+            <p>6. Say "open card 1" or "show card 2" to view saved info.</p>
+            <p>7. Say "change color to red" to modify drawing colors.</p>
+            <p>8. Say "generate image of [description]" for image creation.</p>
         </div>
     </div>
+    <div id="debug-box"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
         // OpenAI API integration
         const apiKeyInput = document.getElementById('api-key-input');
-        const userInput = document.getElementById('user-input');
-        const sendButton = document.getElementById('send-button');
-        const voiceButton = document.getElementById('voice-button');
-        const speakButton = document.getElementById('speak-button');
         const chatHistory = document.getElementById('chat-history');
         const rightPanel = document.getElementById('right-panel');
         const helpButton = document.getElementById('help-button');
@@ -172,9 +164,11 @@
         const canvas = document.getElementById('drawing-canvas');
         const ctx = canvas.getContext('2d');
         const transcriptionDiv = document.getElementById('transcription');
+        const debugBox = document.getElementById('debug-box');
 
         let chatMessages = [];
         let cardCount = 0;
+        let isListening = false;
 
         // Set up canvas
         canvas.width = canvas.offsetWidth;
@@ -209,42 +203,37 @@
         animateStars();
 
         // Event listeners
-        sendButton.addEventListener('click', sendMessage);
-        userInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') sendMessage();
-        });
-        voiceButton.addEventListener('click', startVoiceRecognition);
-        speakButton.addEventListener('click', speakResponse);
         helpButton.addEventListener('click', toggleHelpPanel);
 
+        // Start continuous voice recognition
+        startContinuousVoiceRecognition();
+
         // Functions
-        async function sendMessage() {
-            const message = userInput.value.trim();
-            if (!message) return;
+        async function processVoiceCommand(command) {
+            updateDebugBox('Processing command: ' + command);
 
-            addToChatHistory('User', message);
-            userInput.value = '';
-
-            if (message.toLowerCase().includes('summarize chat')) {
+            if (command.toLowerCase().includes('summarize chat')) {
                 summarizeChat();
-            } else if (message.toLowerCase().startsWith('draw ')) {
-                handleDrawCommand(message);
-            } else if (message.toLowerCase().startsWith('change color to ')) {
-                changeColor(message.toLowerCase().replace('change color to ', ''));
-            } else if (message.toLowerCase().startsWith('store output')) {
-                storeOutput(message.replace('store output', '').trim());
-            } else if (message.toLowerCase().match(/^(open|show) card \d+$/)) {
-                const cardNumber = parseInt(message.match(/\d+/)[0]);
+            } else if (command.toLowerCase().startsWith('draw ')) {
+                handleDrawCommand(command);
+            } else if (command.toLowerCase().startsWith('change color to ')) {
+                changeColor(command.toLowerCase().replace('change color to ', ''));
+            } else if (command.toLowerCase().startsWith('store output')) {
+                storeOutput(command.replace('store output', '').trim());
+            } else if (command.toLowerCase().match(/^(open|show) card \d+$/)) {
+                const cardNumber = parseInt(command.match(/\d+/)[0]);
                 showCard(cardNumber);
-            } else if (message.toLowerCase().startsWith('generate image of ')) {
-                await generateImage(message.replace('generate image of ', '').trim());
+            } else if (command.toLowerCase().startsWith('generate image of ')) {
+                await generateImage(command.replace('generate image of ', '').trim());
             } else {
-                const response = await getAIResponse(message);
+                const response = await getAIResponse(command);
                 addToChatHistory('AI', response);
+                speakResponse(response);
             }
         }
 
         async function getAIResponse(message) {
+            updateDebugBox('Fetching AI response...');
             const apiKey = apiKeyInput.value;
             if (!apiKey) {
                 return 'Please enter your OpenAI API key.';
@@ -264,14 +253,17 @@
                 });
 
                 const data = await response.json();
+                updateDebugBox('AI response received');
                 return data.choices[0].message.content;
             } catch (error) {
                 console.error('Error:', error);
+                updateDebugBox('Error fetching AI response');
                 return 'An error occurred while fetching the AI response.';
             }
         }
 
         async function generateImage(prompt) {
+            updateDebugBox('Generating image...');
             const apiKey = apiKeyInput.value;
             if (!apiKey) {
                 addToChatHistory('System', 'Please enter your OpenAI API key.');
@@ -300,12 +292,15 @@
                     imgElement.style.maxWidth = '100%';
                     addToChatHistory('AI', '');
                     chatHistory.lastElementChild.appendChild(imgElement);
+                    updateDebugBox('Image generated successfully');
                 } else {
                     addToChatHistory('System', 'Failed to generate image.');
+                    updateDebugBox('Failed to generate image');
                 }
             } catch (error) {
                 console.error('Error:', error);
                 addToChatHistory('System', 'An error occurred while generating the image.');
+                updateDebugBox('Error generating image');
             }
         }
 
@@ -318,11 +313,13 @@
         }
 
         function summarizeChat() {
+            updateDebugBox('Summarizing chat...');
             const summary = chatMessages.map(msg => `${msg.role}: ${msg.message}`).join('\n');
             addToChatHistory('System', 'Chat Summary:\n' + summary);
         }
 
         function handleDrawCommand(command) {
+            updateDebugBox('Drawing: ' + command);
             const shape = command.toLowerCase().replace('draw ', '');
             ctx.beginPath();
             switch (shape) {
@@ -344,10 +341,12 @@
         }
 
         function changeColor(color) {
+            updateDebugBox('Changing color to: ' + color);
             ctx.strokeStyle = color;
         }
 
         function storeOutput(content) {
+            updateDebugBox('Storing output...');
             cardCount++;
             const card = document.createElement('div');
             card.className = 'card';
@@ -357,17 +356,23 @@
         }
 
         function showCard(cardNumber) {
+            updateDebugBox('Showing card: ' + cardNumber);
             const cards = rightPanel.getElementsByClassName('card');
             if (cardNumber > 0 && cardNumber <= cards.length) {
                 cards[cardNumber - 1].classList.add('expanded');
             }
         }
 
-        function startVoiceRecognition() {
+        function startContinuousVoiceRecognition() {
             const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
             recognition.lang = 'en-US';
             recognition.continuous = true;
             recognition.interimResults = true;
+
+            recognition.onstart = () => {
+                isListening = true;
+                updateDebugBox('Voice recognition started');
+            };
 
             recognition.onresult = (event) => {
                 let interimTranscript = '';
@@ -385,24 +390,30 @@
                 transcriptionDiv.innerHTML = finalTranscript + '<i style="color: #999;">' + interimTranscript + '</i>';
             };
 
+            recognition.onend = () => {
+                isListening = false;
+                updateDebugBox('Voice recognition ended');
+                if (isListening) {
+                    recognition.start();
+                }
+            };
+
             recognition.start();
         }
 
-        function processVoiceCommand(command) {
-            userInput.value = command;
-            sendMessage();
-        }
-
-        function speakResponse() {
-            const lastAIMessage = chatMessages.filter(msg => msg.role === 'AI').pop();
-            if (lastAIMessage) {
-                const utterance = new SpeechSynthesisUtterance(lastAIMessage.message);
-                window.speechSynthesis.speak(utterance);
-            }
+        function speakResponse(text) {
+            updateDebugBox('Speaking response...');
+            const utterance = new SpeechSynthesisUtterance(text);
+            window.speechSynthesis.speak(utterance);
         }
 
         function toggleHelpPanel() {
             helpPanel.style.height = helpPanel.style.height === '300px' ? '0' : '300px';
+        }
+
+        function updateDebugBox(message) {
+            debugBox.innerHTML += message + '<br>';
+            debugBox.scrollTop = debugBox.scrollHeight;
         }
 
         // Window resize handler
