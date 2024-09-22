@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transcribed Chat AI</title>
+    <title>Advanced Transcribed Chat AI</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -17,7 +17,7 @@
             justify-content: center;
             min-height: 100vh;
         }
-        #apiKeyInput, #userInput {
+        #apiKeyInput, #userInput, #terminal {
             width: 100%;
             padding: 10px;
             margin: 10px 0;
@@ -25,7 +25,7 @@
             color: #fff;
             border: 1px solid #555;
         }
-        #transcription, #aiResponse {
+        #transcription, #aiResponse, #terminal {
             width: 100%;
             height: 200px;
             border: 2px solid #fff;
@@ -52,6 +52,9 @@
             border: 2px solid #fff;
             margin-top: 20px;
         }
+        #terminal {
+            font-family: monospace;
+        }
     </style>
 </head>
 <body>
@@ -60,23 +63,28 @@
     <div id="transcription"></div>
     <textarea id="userInput" placeholder="Or type your message here"></textarea>
     <button id="sendButton" class="button">Send to AI</button>
+    <button id="chatToAIButton" class="button">Chat to AI</button>
     <div id="aiResponse"></div>
     <canvas id="canvas" width="400" height="400"></canvas>
+    <div id="terminal"></div>
 
     <script>
         const startButton = document.getElementById('startButton');
         const sendButton = document.getElementById('sendButton');
+        const chatToAIButton = document.getElementById('chatToAIButton');
         const transcriptionDiv = document.getElementById('transcription');
         const userInput = document.getElementById('userInput');
         const aiResponse = document.getElementById('aiResponse');
         const apiKeyInput = document.getElementById('apiKeyInput');
         const canvas = document.getElementById('canvas');
         const ctx = canvas.getContext('2d');
+        const terminal = document.getElementById('terminal');
         let recognition;
         let isTranscribing = false;
 
         startButton.addEventListener('click', toggleTranscription);
         sendButton.addEventListener('click', sendToAI);
+        chatToAIButton.addEventListener('click', chatToAI);
 
         function toggleTranscription() {
             if (isTranscribing) {
@@ -140,6 +148,12 @@
                 ctx.arc(centerX, centerY, size / 2, 0, Math.PI * 2);
                 ctx.stroke();
             }
+
+            // Process terminal commands
+            if (command.startsWith('terminal:')) {
+                const terminalCommand = command.substring(9).trim();
+                executeTerminalCommand(terminalCommand);
+            }
         }
 
         async function sendToAI() {
@@ -184,6 +198,35 @@
                 aiResponse.innerHTML = 'An error occurred while communicating with the AI.';
             }
         }
+
+        function chatToAI() {
+            const transcribedText = transcriptionDiv.innerText;
+            userInput.value = transcribedText;
+            sendToAI();
+        }
+
+        function executeTerminalCommand(command) {
+            // Simulate terminal commands (you can expand this as needed)
+            let output = '';
+            switch (command) {
+                case 'help':
+                    output = 'Available commands: help, clear, date';
+                    break;
+                case 'clear':
+                    terminal.innerHTML = '';
+                    return;
+                case 'date':
+                    output = new Date().toString();
+                    break;
+                default:
+                    output = `Command not found: ${command}`;
+            }
+            terminal.innerHTML += `> ${command}\n${output}\n`;
+            terminal.scrollTop = terminal.scrollHeight;
+        }
+
+        // Initialize terminal
+        terminal.innerHTML = 'Welcome to the terminal. Type "help" for available commands.\n';
     </script>
 </body>
 </html>
