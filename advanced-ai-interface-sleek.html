@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced AI Interface</title>
+    <style>
+        :root {
+            --bg-color: linear-gradient(45deg, #3a1c71, #d76d77, #ffaf7b);
+            --text-color: white;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.18);
+        }
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .glass-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            padding: 10px;
+            margin: 5px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--glass-border);
+        }
+        .container {
+            display: flex;
+            justify-content: space-between;
+            height: calc(100vh - 120px);
+        }
+        .left-panel, .right-panel {
+            width: 30%;
+            display: flex;
+            flex-direction: column;
+        }
+        .center-panel {
+            width: 40%;
+            display: flex;
+            flex-direction: column;
+        }
+        canvas {
+            width: 100%;
+            height: 150px;
+        }
+        button {
+            font-size: 14px;
+            margin: 5px;
+            padding: 5px 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: var(--text-color);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        #transcription {
+            font-size: 18px;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        #chat-history {
+            font-size: 12px;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        #generated-image {
+            max-width: 100%;
+            max-height: 200px;
+            object-fit: contain;
+        }
+        .controls {
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+        }
+        .help-section {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            padding: 10px;
+            display: none;
+        }
+        .help-content {
+            display: flex;
+            justify-content: space-around;
+        }
+        .help-item {
+            text-align: center;
+            font-size: 12px;
+        }
+        .dark-theme {
+            --bg-color: linear-gradient(45deg, #000000, #1a237e, #000000);
+            --text-color: #fff;
+            --glass-bg: rgba(0, 150, 255, 0.1);
+            --glass-border: rgba(0, 150, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="controls glass-container">
+        <button id="recordButton">Start Recording</button>
+        <button id="toggleAI">Toggle AI: OpenAI</button>
+        <button id="toggleTheme">Toggle Theme</button>
+        <button id="toggleHelp">Toggle Help</button>
+    </div>
+    <div class="container">
+        <div class="left-panel">
+            <canvas id="spectrum" class="glass-container"></canvas>
+            <canvas id="waterfall" class="glass-container"></canvas>
+        </div>
+        <div class="center-panel">
+            <div id="transcription" class="glass-container"></div>
+        </div>
+        <div class="right-panel">
+            <div id="chat-history" class="glass-container"></div>
+            <img id="generated-image" class="glass-container" style="display: none;">
+        </div>
+    </div>
+    <div class="help-section">
+        <div class="help-content">
+            <div class="help-item">
+                <p>Say "Generate image of [description]" to create an image</p>
+            </div>
+            <div class="help-item">
+                <p>Say "Tell me about [topic]" to get information</p>
+            </div>
+            <div class="help-item">
+                <p>Say "Switch to [OpenAI/AIML]" to change AI provider</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let OPENAI_API_KEY = '';
+        let AIML_API_KEY = '';
+
+        // Load API keys from environment variables
+        OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
+        AIML_API_KEY = process.env.AIML_API_KEY || '';
+
+        if (!OPENAI_API_KEY || !AIML_API_KEY) {
+            console.error('API keys not found in environment variables');
+        }
+
+        const recordButton = document.getElementById('recordButton');
+        const toggleAIButton = document.getElementById('toggleAI');
+        const toggleThemeButton = document.getElementById('toggleTheme');
+        const toggleHelpButton = document.getElementById('toggleHelp');
+        const spectrumCanvas = document.getElementById('spectrum');
+        const waterfallCanvas = document.getElementById('waterfall');
+        const transcriptionDiv = document.getElementById('transcription');
+        const chatHistoryDiv = document.getElementById('chat-history');
+        const generatedImage = document.getElementById('generated-image');
+        const helpSection = document.querySelector('.help-section');
+        const spectrumCtx = spectrumCanvas.getContext('2d');
+        const waterfallCtx = waterfallCanvas.getContext('2d');
+
+        let audioContext, analyser, microphone, javascriptNode;
+        let isRecording = false;
+        let waterfallData = [];
+        let recognition;
+        let isOpenAI = true;
+
+        recordButton.onclick = toggleRecording;
+        toggleAIButton.onclick = toggleAIProvider;
+        toggleThemeButton.onclick = toggleTheme;
+        toggleHelpButton.onclick = toggleHelp;
+
+        function toggleRecording() {
+            if (isRecording) {
+                stopRecording();
+            } else {
+                startRecording();
+            }
+        }
+
+        function toggleAIProvider() {
+            isOpenAI = !isOpenAI;
+            toggleAIButton.textContent = `Toggle AI: ${isOpenAI ? 'OpenAI' : 'AIML'}`;
+        }
+
+        function toggleTheme() {
+            document.body.classList.toggle('dark-theme');
+        }
+
+        function toggleHelp() {
+            helpSection.style.display = helpSection.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function startRecording() {
+            isRecording = true;
+            recordButton.textContent = 'Stop Recording';
+
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            analyser = audioContext.createAnalyser();
+            
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    microphone = audioContext.createMediaStreamSource(stream);
+                    javascriptNode = audioContext.createScriptProcessor(2048, 1, 1);
+
+                    analyser.smoothingTimeConstant = 0.8;
+                    analyser.fftSize = 256;
+
+                    microphone.connect(analyser);
+                    analyser.connect(javascriptNode);
+                    javascriptNode.connect(audioContext.destination);
+
+                    javascriptNode.onaudioprocess = function() {
+                        const array = new Uint8Array(analyser.frequencyBinCount);
+                        analyser.getByteFrequencyData(array);
+                        drawSpectrum(array);
+                        updateWaterfall(array);
+                    }
+
+                    if ('webkitSpeechRecognition' in window) {
+                        recognition = new webkitSpeechRecognition();
+                        recognition.continuous = true;
+                        recognition.interimResults = true;
+
+                        recognition.onresult = function(event) {
+                            let finalTranscript = '';
+                            let interimTranscript = '';
+                            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                                if (event.results[i].isFinal) {
+                                    finalTranscript += event.results[i][0].transcript;
+                                } else {
+                                    interimTranscript += event.results[i][0].transcript;
+                                }
+                            }
+                            updateTranscription(finalTranscript, interimTranscript);
+                            if (finalTranscript) {
+                                processTranscription(finalTranscript);
+                            }
+                        };
+
+                        recognition.start();
+                    } else {
+                        transcriptionDiv.innerHTML = 'Speech recognition is not supported in this browser.';
+                    }
+                })
+                .catch(err => {
+                    console.error('Error accessing microphone:', err);
+                    stopRecording();
+                });
+        }
+
+        function stopRecording() {
+            isRecording = false;
+            recordButton.textContent = 'Start Recording';
+
+            if (microphone) microphone.disconnect();
+            if (javascriptNode) javascriptNode.disconnect();
+            if (audioContext) audioContext.close();
+            if (recognition) recognition.stop();
+
+            microphone = javascriptNode = audioContext = null;
+            spectrumCtx.clearRect(0, 0, spectrumCanvas.width, spectrumCanvas.height);
+            waterfallCtx.clearRect(0, 0, waterfallCanvas.width, waterfallCanvas.height);
+            waterfallData = [];
+        }
+
+        function drawSpectrum(array) {
+            const WIDTH = spectrumCanvas.width;
+            const HEIGHT = spectrumCanvas.height;
+
+            spectrumCtx.clearRect(0, 0, WIDTH, HEIGHT);
+            
+            for (let i = 0; i < array.length; i++) {
+                const value = array[i];
+                const percent = value / 256;
+                const height = HEIGHT * percent;
+                const offset = HEIGHT - height;
+                const barWidth = WIDTH / array.length;
+                const hue = i / array.length * 360;
+                spectrumCtx.fillStyle = 'hsl(' + hue + ', 100%, 50%)';
+                spectrumCtx.fillRect(i * barWidth, offset, barWidth, height);
+            }
+        }
+
+        function updateWaterfall(array) {
+            const WIDTH = waterfallCanvas.width;
+            const HEIGHT = waterfallCanvas.height;
+
+            waterfallData.unshift(array);
+            if (waterfallData.length > WIDTH) {
+                waterfallData.pop();
+            }
+
+            waterfallCtx.clearRect(0, 0, WIDTH, HEIGHT);
+            
+            for (let x = 0; x < waterfallData.length; x++) {
+                const column = waterfallData[x];
+                for (let y = 0; y < column.length; y++) {
+                    const value = column[y];
+                    const intensity = value / 256;
+                    waterfallCtx.fillStyle = `rgba(0, ${Math.floor(intensity * 255)}, ${Math.floor(intensity * 255)}, 1)`;
+                    waterfallCtx.fillRect(WIDTH - x, y * (HEIGHT / column.length), 1, HEIGHT / column.length);
+                }
+            }
+        }
+
+        function updateTranscription(finalTranscript, interimTranscript) {
+            let htmlContent = '';
+            if (finalTranscript) {
+                htmlContent += `<span class="final">${finalTranscript}</span> `;
+            }
+            if (interimTranscript) {
+                htmlContent += `<span class="interim">${interimTranscript}</span>`;
+            }
+            transcriptionDiv.innerHTML = htmlContent;
+        }
+
+        function processTranscription(transcript) {
+            chatHistoryDiv.innerHTML += `<p><strong>You:</strong> ${transcript}</p>`;
+            
+            if (transcript.toLowerCase().includes('generate image of')) {
+                const imagePrompt = transcript.toLowerCase().split('generate image of')[1].trim();
+                generateImage(imagePrompt);
+            } else if (transcript.toLowerCase().startsWith('tell me about')) {
+                const topic = transcript.toLowerCase().split('tell me about')[1].trim();
+                getInformation(topic);
+            } else if (transcript.toLowerCase().includes('switch to')) {
+                if (transcript.toLowerCase().includes('openai')) {
+                    isOpenAI = true;
+                    toggleAIButton.textContent = 'Toggle AI: OpenAI';
+                } else if (transcript.toLowerCase().includes('aiml')) {
+                    isOpenAI = false;
+                    toggleAIButton.textContent = 'Toggle AI: AIML';
+                }
+                chatHistoryDiv.innerHTML += `<p><strong>AI:</strong> Switched to ${isOpenAI ? 'OpenAI' : 'AIML'}.</p>`;
+            } else {
+                chatHistoryDiv.innerHTML += `<p><strong>AI:</strong> I'm not sure how to process that request. Try asking for information or generating an image.</p>`;
+            }
+            
+            chatHistoryDiv.scrollTop = chatHistoryDiv.scrollHeight;
+        }
+
+        async function generateImage(prompt) {
+            try {
+                let imageUrl;
+                if (isOpenAI) {
+                    const response = await fetch('https://api.openai.com/v1/images/generations', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${OPENAI_API_KEY}`
+                        },
+                        body: JSON.stringify({ 
+                            model: "dall-e-3",
+                            prompt: prompt,
+                            n: 1,
+                            size: "1024x1024"
+                        })
+                    });
+                    const data = await response.json();
+                    imageUrl = data.data[0].url;
+                } else {
+                    const response = await fetch('https://api.aimlapi.com/images/generations', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${AIML_API_KEY}`
+                        },
+                        body: JSON.stringify({
+                            prompt: prompt,
+                            model: "flux/schnell"
+                        })
+                    });
+                    const data = await response.json();
+                    imageUrl = data.data[0].url;
+                }
+                
+                if (imageUrl) {
+                    generatedImage.src = imageUrl;
+                    generatedImage.style.display = 'block';
+                    chatHistoryDiv.innerHTML += `<p><strong>AI:</strong> Image generated based on your prompt.</p>`;
+                } else {
+                    chatHistoryDiv.innerHTML += `<p><strong>AI:</strong> Sorry, I couldn't generate an image.</p>`;
+                }
+            } catch (error) {
+                console.error('Error generating image:', error);
+                chatHistoryDiv.innerHTML += `<p><strong>AI:</strong> There was an error generating the image.</p>`;
+            }
+            
+            chatHistoryDiv.scrollTop = chatHistoryDiv.scrollHeight;
+        }
+
+        async function getInformation(topic) {
+            try {
+                let response;
+                if (isOpenAI) {
+                    response = await fetch('https://api.openai.com/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${OPENAI_API_KEY}`
+                        },
+                        body: JSON.stringify({
+                            model: "gpt-3.5-turbo",
+                            messages: [
+                                {role: "system", content: "You are a helpful assistant."},
+                                {role: "user", content: `Tell me about ${topic}`}
+                            ]
+                        })
+                    });
+                    const data = await response.json();
+                    chatHistoryDiv.innerHTML += `<p><strong>AI:</strong> ${data.choices[0].message.content}</p>`;
+                } else {
+                    // Implement AIML text generation here
+                    chatHistoryDiv.innerHTML += `<p><strong>AI:</strong> AIML text generation not implemented yet.</p>`;
+                }
+            } catch (error) {
+                console.error('Error getting information:', error);
+                chatHistoryDiv.innerHTML += `<p><strong>AI:</strong> There was an error retrieving information.</p>`;
+            }
+            
+            chatHistoryDiv.scrollTop = chatHistoryDiv.scrollHeight;
+        }
+
+        function resizeCanvases() {
+            spectrumCanvas.width = spectrumCanvas.clientWidth;
+            spectrumCanvas.height = spectrumCanvas.clientHeight;
+            waterfallCanvas.width = waterfallCanvas.clientWidth;
+            waterfallCanvas.height = waterfallCanvas.clientHeight;
+        }
+
+        window.addEventListener('resize', resizeCanvases);
+        resizeCanvases();
+    </script>
+</body>
+</html>

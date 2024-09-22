@@ -1,0 +1,455 @@
+[33mcommit 29de2518a78c5db82cbcdd3a4705fc1ef88f4f2c[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m)[m
+Author: Gorad Ajinkya <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 23:33:22 2024 +0300
+
+    Remove API keys and update .gitignore
+
+[33mcommit 1d1ad2b7210cff64957951124cfded7e1f4d83ec[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 23:33:08 2024 +0300
+
+    fix: Remove API keys and update .gitignore
+
+[33mcommit d9a0c3bc70b1ef2090596560203cef9513a0a0f8[m
+Author: Gorad Ajinkya <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 23:33:06 2024 +0300
+
+    fix: Add config.json to .gitignore
+
+[33mcommit b38a09f26fc85ee741a0c8621caf38c54d65bf95[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 23:32:34 2024 +0300
+
+    fix: Remove API keys from HTML and load from config file
+
+[33mcommit cf9afe93b51e5a7e2ad510f7405620e2f01c3bd2[m
+Author: Gorad Ajinkya <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 23:31:47 2024 +0300
+
+    Remove API keys from HTML and load from config file
+
+[33mcommit 9fea3d233a1f136cec95af24d458e7151fcb23bd[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 23:31:45 2024 +0300
+
+    fix: Update config.json with placeholder API keys
+
+[33mcommit 7b17772b852f996da1125cf71e5c8356114f04aa[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 23:31:34 2024 +0300
+
+    feat: Remove API keys from HTML and load from config file
+
+[33mcommit b51055283808344cb21cc8c0cc82cb434cfc1f9d[m
+Author: Gorad Ajinkya <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 23:29:40 2024 +0300
+
+    Update files and remove sensitive information
+
+[33mcommit 089da947889e80d691b57d99f0c583a44f7edccf[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 20:32:54 2024 +0300
+
+    feat: Resize generated image for canvas and add smaller version to chat history
+
+[33mcommit 4c11df962327d224394715237107c1780bf81e7a[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 20:14:20 2024 +0300
+
+    feat: Update image generation functionality
+
+[33mcommit 246a70291f4a3c68adcfd5a879f6fb147cbfbc2f[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 19:52:08 2024 +0300
+
+    fix: make control buttons visible
+
+[33mcommit d16865404dcea8078aee594ddf317fe6609815c4[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 19:50:48 2024 +0300
+
+    fix: Improve control menu accessibility, AI response handling, and image display
+
+[33mcommit 84e37fb44a962b0d7093f35c29b07f5812c55ddc[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 19:11:13 2024 +0300
+
+    feat: Improve advanced AI interface
+
+[33mcommit ab4e8917f712ca7de922c9a17a56ece08090d457[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 18:48:53 2024 +0300
+
+    feat: Implement image generation using OpenAI DALL-E 3 model
+
+[33mcommit 9714bc0f5c4751cc15864cc4658b1dd633db6f47[m
+Author: Gorad Ajinkya <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 18:48:51 2024 +0300
+
+    fix: Use correct API key variable in image generation
+
+[33mcommit 6aa5d75c5f6236a591f8288f259fd7b70bee3f63[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 18:25:46 2024 +0300
+
+    refactor: Adjust layout and z-index of elements to prevent overlapping
+
+[33mcommit c8f5ceb463aca50ffdd34f8b10e6719bd1805cf1[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 18:15:40 2024 +0300
+
+    fix: Update CSS and error handling in advanced_ai_interface.html
+
+[33mcommit 77e30b21d3cb5429fdf72f6fc46acd9edd413661[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 17:55:49 2024 +0300
+
+    feat: Load API keys from config.json and make inputs editable
+
+[33mcommit 165720b4edd143867986eb9e285c13693f70390b[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 17:19:35 2024 +0300
+
+    feat: Add support for multiple API keys
+
+[33mcommit d7c7fd7e5af5310a4ebd421e4c95bc19f3e01aec[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 17:04:43 2024 +0300
+
+    fix: Integrate API key management and support multiple AI providers
+
+[33mcommit 61b463a93bdbc2f6272fe3ea666ae76a5b926f41[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 17:03:17 2024 +0300
+
+    feat: Implement theme selector, API toggle, and voice recognition improvements
+
+[33mcommit 3a323c2865051ced44f9bab4841fc7e71fe16278[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 16:20:58 2024 +0300
+
+    feat: Move debug box to bottom left, update API key, and ensure no buttons are hidden
+
+[33mcommit d4a97b6946f48b82885743c1fb7bf53ed51aa985[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 16:19:34 2024 +0300
+
+    feat: Add toggle button to switch between OpenAI and AIML APIs for text and image generation
+
+[33mcommit b13ee210ad45e57c09d54ab1bec6e11f649a1725[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 16:15:43 2024 +0300
+
+    feat: Update advanced AI interface and config
+
+[33mcommit 40e6fef3a032ecb5f33d54f7a873c1942841dc78[m[33m ([m[1;31morigin/main[m[33m)[m
+Author: Gorad Ajinkya <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 16:08:12 2024 +0300
+
+    Update advanced AI interface and config
+
+[33mcommit 4f508488b500094817cec468cb40c97521e649ca[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 16:02:11 2024 +0300
+
+    feat: Integrate AI/ML API for text and image generation
+
+[33mcommit 6322d2737e32961db6334e7310c39ef5510ce302[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 16:01:42 2024 +0300
+
+    feat: Integrate AI/ML API for image generation
+
+[33mcommit 51d65d5ccf72f2d9f75691a5fe4fc5aad5669491[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 14:28:10 2024 +0300
+
+    feat: Improve chat history handling and add spectrum visualization
+
+[33mcommit 5c9180a692802675ab888160ba499b1bb4de9030[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 14:24:37 2024 +0300
+
+    feat: Separate image generation API from chat inference API
+
+[33mcommit 0ea30c3abc9ed4db098b63c7fdea79fc5b09b07d[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 14:21:18 2024 +0300
+
+    feat: Add OpenAI image generation and a flux-based rapid generator
+
+[33mcommit 84899022cfcca69f1c38a5217f119cab344eb30c[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 14:19:21 2024 +0300
+
+    feat: Improve UI and functionality of advanced AI interface
+
+[33mcommit 7ed9bc706ae66d59bc8e62da875c5c55a0034dfd[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 14:16:23 2024 +0300
+
+    feat: Add spectrogram visualization to voice recognition
+
+[33mcommit 1d0f951256b2bc47e04ae6917bd572b6c05c5faa[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 14:10:45 2024 +0300
+
+    feat: Improve voice command processing in advanced_ai_interface.html
+
+[33mcommit 3b6bea13988bdcef10d98c4c972bf9c0ba03004d[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 14:10:24 2024 +0300
+
+    feat: Implement advanced AI interface features
+
+[33mcommit 14716ab0f92148e5af147c9b925aa30a2d719aab[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 13:57:58 2024 +0300
+
+    feat: Implement continuous voice recognition and AI response generation
+
+[33mcommit 3fc7671eb4c78bcf6a8331a0d9ffc6b7dbbd96ee[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 13:51:48 2024 +0300
+
+    feat: add real-time transcription and voice command execution
+
+[33mcommit 774bdcfdeb58b1b77c56b0135fcbc4aec1a0d365[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 13:45:04 2024 +0300
+
+    feat: create advanced AI interface
+
+[33mcommit b6939900285726fe1368f1ccee2b9b6e6130a1d6[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 13:34:17 2024 +0300
+
+    docs: add instructions for running Aider
+
+[33mcommit 6ecb195184b3b02f65b7652cb56c0909e034c6af[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 13:33:44 2024 +0300
+
+    docs: Update README with instructions for running Python projects
+
+[33mcommit 258776189fa35935db4037b5350f6263ab2fda6b[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 13:19:49 2024 +0300
+
+    feat: Add notes about API keys and requirements to demos
+
+[33mcommit 6ac3eaf51bae08d548dd76b61cfc948baeb1fc8e[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 13:14:39 2024 +0300
+
+    docs: Update README with HTML preview links for demos
+
+[33mcommit 26e0d710420c1853efbc6a93f29a70f01401bd44[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 13:12:01 2024 +0300
+
+    feat: Update README with direct links to demo pages
+
+[33mcommit 628568e192aef28012e285416b3c30aae90cf91c[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 13:10:34 2024 +0300
+
+    docs: Add README with project descriptions and embedded demos
+
+[33mcommit 8d800ef34b131c5bbf6ceb680e8ac43d6ab0bebc[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 13:03:52 2024 +0300
+
+    feat: Update .gitignore with common Python patterns
+
+[33mcommit 1684d02a178083abe0c351a8a8b04d4a9d3ed00c[m
+Author: Gorad Ajinkya <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 12:59:02 2024 +0300
+
+    Initial commit
+
+[33mcommit c6aa6f900418cd15d4a05dbb36e04cf75110b421[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 12:52:23 2024 +0300
+
+    feat: Implement continuous chat and AI speech functionality
+
+[33mcommit 20095da7623df6ebaedab9a0d7657c1ed1f37b90[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 12:49:53 2024 +0300
+
+    feat: Add "Chat to AI" button and terminal interface
+
+[33mcommit 09d7bdf8f924b7dc282eea2f3b9190fe08ef92d1[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 12:44:45 2024 +0300
+
+    feat: Implement transcribed chat AI with OpenAI API
+
+[33mcommit 7cc51208e5f5f75f3f4f6b8ed99634a24edb6ab3[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 12:41:06 2024 +0300
+
+    feat: Implement VR-style speech transcription UI
+
+[33mcommit affd2c252b6b32d3469b721810657fd0ca7c4718[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 12:37:33 2024 +0300
+
+    fix: Improve error handling and microphone permission checks in startAnalysis function
+
+[33mcommit a3e1f698b9df3170296a4cd50bce0af0ed118145[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 12:36:41 2024 +0300
+
+    fix: Destroy existing charts before creating new ones
+
+[33mcommit 07aaf2809a7bad4ddadd5d6a48bb287985fc21f0[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 12:35:29 2024 +0300
+
+    fix: Improve microphone access handling in spectrogram.html
+
+[33mcommit 37fbb60e05e982b7a2b6adda36b33a963612c4ae[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 12:33:55 2024 +0300
+
+    fix: Improve microphone access and speech recognition functionality
+
+[33mcommit 4e4b0e84c87d65065f6e9154e7dd5c2be912671f[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 12:32:28 2024 +0300
+
+    feat: Implement real-time audio analysis with spectrogram, frequency spectrum, and speech transcription
+
+[33mcommit 6fa39911716f1664c43a068f48f0baf0f2d6c948[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 12:27:35 2024 +0300
+
+    feat: Restore real-time spectrogram functionality
+
+[33mcommit 4d0716045e433dcb6beb627d3809b9647f671e17[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 12:25:36 2024 +0300
+
+    feat: Implement real-time spectrogram with frequency beam and time-based spectrogram
+
+[33mcommit 95bbf94aa0d0da6a5a3e8dfea29aec7804c2c082[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 12:23:41 2024 +0300
+
+    feat: Implement real-time spectrogram using Web Audio API and Chart.js
+
+[33mcommit 87d9e853d64453cf574f042025a0daa393d12d99[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 12:22:18 2024 +0300
+
+    feat: Implement real-time spectrogram with microphone input
+
+[33mcommit 9268481582ab8172d96de2eb3a837142ceae0c05[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 12:18:44 2024 +0300
+
+    feat: Create advanced 3D animation with time travel
+
+[33mcommit 3f27ed5b623fc304199965aad1c8e63d852e99a5[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 12:16:24 2024 +0300
+
+    feat: Create a YouTube clone HTML page
+
+[33mcommit 665d8b5c1d4fe053482c349fb83308ceb7b4294a[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 11:28:36 2024 +0300
+
+    fix: replace ampersand characters with HTML entities
+
+[33mcommit c49130e241eefd111783c56ad1b28bef5da18c9a[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 11:28:21 2024 +0300
+
+    feat: Create comprehensive HTML page for technology, environment, and AI
+
+[33mcommit bb324d31b4137afe706f94d738d220748e4b9278[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 11:26:13 2024 +0300
+
+    feat: create star wars themed html animation
+
+[33mcommit 694ac6675e31fdd14cc050c1827e5d3076321d7e[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 10:54:10 2024 +0300
+
+    feat: Implement 3D solar system simulation
+
+[33mcommit 8020b9b24834da8969b71242e46e3d1264a50808[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 10:27:26 2024 +0300
+
+    feat: Implement real-time speech transcription functionality
+
+[33mcommit 236e401ccc4475494c83742ef2d0f0a101d84d28[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 10:26:31 2024 +0300
+
+    feat: Add interactive controls to Mandelbrot set visualization
+
+[33mcommit 6468bde0cae3d7702d03f224a9e9b9e6f682d1b9[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 10:24:57 2024 +0300
+
+    feat: Add animated Mandelbrot set visualization
+
+[33mcommit a9dd79990b4e67cd8f5933bfbddddfc808b38031[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 10:24:03 2024 +0300
+
+    fix: Resolve import error and update code to use correct LightningChart classes
+
+[33mcommit 3767f61a6bbd33f46079501cf6c21bc63b7dc776[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 10:23:08 2024 +0300
+
+    feat: Create a real-time multi-series dashboard using LightningChart
+
+[33mcommit 1669874c2c025754e85e0b2808ce16f5e23bd034[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 10:21:25 2024 +0300
+
+    feat: Update dashboard_realtime.py to use the correct LightningChart classes
+
+[33mcommit 9b68417deae9b886c30f77ac18cb8fec4dc2d168[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 10:20:06 2024 +0300
+
+    feat: Create a working dashboard based on LightningChart
+
+[33mcommit 1e198657bf8f83c26b817bde70482f70ecf88b5f[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 10:18:59 2024 +0300
+
+    feat: Implement real-time dashboard using LightningChart
+
+[33mcommit a6c8049d3d95527ee10b202d3a10ab05457b40fb[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 10:15:11 2024 +0300
+
+    feat: Refactor dashboard implementation
+
+[33mcommit 588c6936a5866e0543be1aecc1a19cae86324a77[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 10:14:00 2024 +0300
+
+    feat: Enhance dashboard with multiple charts
+
+[33mcommit 96db7920ed7f118334d33bb9e2a0a85078f80150[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 10:12:36 2024 +0300
+
+    feat: Enhance the dashboard with advanced features
+
+[33mcommit 89d6333a44f12075e578c7f4110a806492debb86[m
+Author: Gorad Ajinkya (aider) <ajinkya.gorad@aalto.fi>
+Date:   Sun Sep 22 10:11:41 2024 +0300
+
+    feat: add real-time dashboard using LightningChart Python library

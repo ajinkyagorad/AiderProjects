@@ -27,3 +27,5 @@ Thumbs.db
 
 # Aider specific
 .aider*
+config.json
+"config.json" 
