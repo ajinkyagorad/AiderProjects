@@ -507,7 +507,7 @@
                         model: "dall-e-3",
                         prompt: prompt,
                         n: 1,
-                        size: "512x512"  // Reduced size for better performance
+                        size: "1024x1024"
                     })
                 });
 
@@ -528,14 +528,14 @@
                     imgElement.style.margin = '10px 0';
                     imgElement.style.opacity = '0';
                     imgElement.style.transition = 'opacity 1s ease-in-out';
-                    
+            
                     addToChatHistory('AI', 'Image generated:');
                     chatHistory.lastElementChild.appendChild(imgElement.cloneNode());
-                    
+            
                     // Add image to canvas container
                     const canvasContainer = document.getElementById('canvas-container');
                     canvasContainer.appendChild(imgElement);
-                    
+            
                     // Fade in the image
                     setTimeout(() => {
                         imgElement.style.opacity = '1';
@@ -543,7 +543,7 @@
 
                     // Clear the drawing canvas
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    
+            
                     updateDebugBox('Image generated successfully');
                 } else {
                     throw new Error('No image URL in the response');
