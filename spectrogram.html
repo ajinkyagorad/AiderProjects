@@ -43,6 +43,9 @@
         stopButton.addEventListener('click', stopAnalysis);
 
         function startAnalysis() {
+            if (audioContext) {
+                audioContext.close();
+            }
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
             analyser = audioContext.createAnalyser();
             analyser.fftSize = 2048;
@@ -58,8 +61,12 @@
                     startTranscription();
                     startButton.disabled = true;
                     stopButton.disabled = false;
+                    startButton.textContent = 'Stop';
                 })
-                .catch(err => console.error('Error accessing microphone:', err));
+                .catch(err => {
+                    console.error('Error accessing microphone:', err);
+                    alert('Error accessing microphone. Please check your permissions and try again.');
+                });
         }
 
         function stopAnalysis() {
@@ -75,6 +82,8 @@
             }
             startButton.disabled = false;
             stopButton.disabled = true;
+            startButton.textContent = 'Start';
+            transcriptionDiv.innerHTML = '';
         }
 
         function createCharts() {
@@ -177,6 +186,9 @@
                 row.map((value, j) => ({ x: i, y: j, v: value }))
             );
             spectrogramChart.update();
+
+            // Log data to console for debugging
+            console.log('Updating analysis:', dataArray[0]);
         }
 
         function startTranscription() {
@@ -204,7 +216,13 @@
                     console.error('Speech recognition error', event.error);
                 };
 
+                recognition.onend = () => {
+                    console.log('Speech recognition ended. Restarting...');
+                    recognition.start();
+                };
+
                 recognition.start();
+                console.log('Speech recognition started');
             } else {
                 transcriptionDiv.innerHTML = 'Web Speech API is not supported in this browser.';
             }
