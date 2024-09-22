@@ -22,9 +22,7 @@ A virtual reality speech transcription tool with real-time visualization.
 <details>
 <summary>Click to view demo</summary>
 
-```html
-<iframe src="transcription.html" width="100%" height="500px"></iframe>
-```
+[Open VR Speech Transcription Demo](transcription.html)
 
 </details>
 
@@ -35,9 +33,7 @@ An interactive webpage showcasing the intersection of technology, AI, and enviro
 <details>
 <summary>Click to view demo</summary>
 
-```html
-<iframe src="tech_ai_environment.html" width="100%" height="500px"></iframe>
-```
+[Open Tech, AI & Environment Demo](tech_ai_environment.html)
 
 </details>
 
@@ -48,9 +44,7 @@ A real-time chat interface with AI integration and speech recognition capabiliti
 <details>
 <summary>Click to view demo</summary>
 
-```html
-<iframe src="transcribed_chat_ai.html" width="100%" height="500px"></iframe>
-```
+[Open Advanced Transcribed Chat AI Demo](transcribed_chat_ai.html)
 
 </details>
 
@@ -61,9 +55,7 @@ A simple clone of the YouTube interface demonstrating front-end development skil
 <details>
 <summary>Click to view demo</summary>
 
-```html
-<iframe src="youtube_clone.html" width="100%" height="500px"></iframe>
-```
+[Open YouTube Clone Demo](youtube_clone.html)
 
 </details>
 
@@ -74,9 +66,7 @@ A complex 3D animation system with time-travel capabilities and data recording f
 <details>
 <summary>Click to view demo</summary>
 
-```html
-<iframe src="advanced_3d_animation.html" width="100%" height="500px"></iframe>
-```
+[Open Advanced 3D Animation Demo](advanced_3d_animation.html)
 
 </details>
 
@@ -87,9 +77,7 @@ An interactive 3D simulation of the solar system with controls for time manipula
 <details>
 <summary>Click to view demo</summary>
 
-```html
-<iframe src="solar_system.html" width="100%" height="500px"></iframe>
-```
+[Open 3D Solar System Simulation Demo](solar_system.html)
 
 </details>
 
@@ -100,9 +88,7 @@ An interactive visualization of the Mandelbrot set with zoom and pan capabilitie
 <details>
 <summary>Click to view demo</summary>
 
-```html
-<iframe src="mandelbrot.html" width="100%" height="500px"></iframe>
-```
+[Open Animated Mandelbrot Set Demo](mandelbrot.html)
 
 </details>
 
