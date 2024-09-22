@@ -1,0 +1,818 @@
+Dashboard
+
+Dashboard is a component for flexible positioning of multiple Charts efficiently in the same rendering view.
+
+Currently, Dashboard supports the following chart types:
+
+    Chart XY
+
+    Chart 3D
+
+    Bar Chart
+
+    Pie Chart
+
+    GaugeChart
+
+    Funnel Chart
+
+    Pyramid Chart
+
+    Zoom Band Chart
+
+Dashboards are created from lc reference. Upon its creation, amount of columns and rows must be specified. Charts can then be placed in dashboard cells with column and row indexes and spans:
+
+import lightningchart as lc
+
+dashboard = lc.Dashboard(columns=2, rows=2)
+
+chart1 = dashboard.ChartXY(column_index=0, row_index=0, column_span=1, row_span=2)
+chart2 = dashboard.Chart3D(column_index=1, row_index=0, column_span=1, row_span=1)
+chart3 = dashboard.ChartXY(column_index=1, row_index=1)
+
+dashboard.open()
+
+Dashboard with static data
+
+import lightningchart as lc
+
+data1 = [
+    {'name': 'Prospects', 'value': 2000},
+    {'name': 'Contacts', 'value': 1540},
+    {'name': 'Leads', 'value': 1095},
+    {'name': 'Customers', 'value': 549}
+]
+data2 = [
+    {'name': 'A', 'value': 24},
+    {'name': 'B', 'value': 53},
+    {'name': 'C', 'value': 15},
+    {'name': 'D', 'value': 12},
+    {'name': 'E', 'value': 64},
+    {'name': 'F', 'value': 36},
+    {'name': 'G', 'value': 14},
+    {'name': 'H', 'value': 73},
+    {'name': 'I', 'value': 13},
+    {'name': 'J', 'value': 50},
+]
+
+dashboard = lc.Dashboard(2, 2, theme='default')
+
+pie_chart = dashboard.PieChart(0, 0)
+pie_chart.add_slices(data2)
+pie_chart.set_inner_radius(50)
+pyramid_chart = dashboard.PyramidChart(1, 1)
+pyramid_chart.add_slices(data1)
+
+chart3d = dashboard.Chart3D(1, 0)
+chartxy = dashboard.ChartXY(0, 1)
+for i in range(10):
+    chart3d.add_point_series().add_datapoints(lc.generate_random_xyz_data(100))
+    chartxy.add_line_series().add_datapoints(lc.generate_progressive_xy_data(10))
+
+dashboard.open(real_time=False)
+
+Dashboard with real-time data
+
+import lightningchart as lc
+import random
+import math
+
+dashboard = lc.Dashboard(columns=2, rows=3, theme='default').open(real_time=True)
+chart1 = dashboard.ChartXY(column_index=0, row_index=0, column_span=1, row_span=2)
+
+# Settings for automatic scrolling and data cleaning
+x_axis = chart1.add_x_axis(opposite=False, type='linear')
+x_axis.set_scroll_strategy(strategy='progressive')
+x_axis.set_interval(start=-500, end=0, stop_axis_after=False, animate=False)
+chart1.get_default_x_axis().dispose()
+x_axis.set_title('Custom axis')
+
+series1 = chart1.add_line_series(x_axis=x_axis, data_pattern='ProgressiveX')
+series1.set_line_color((64, 255, 64))
+
+# Adding ZoomBandChart of chart1 to the dashboard
+zbc = dashboard.ZoomBandChart(chart1, column_index=0, row_index=2, column_span=1, row_span=1, axis=x_axis)
+
+# Adding another chart to the dashboard
+chart2 = dashboard.Chart3D(column_index=1, row_index=0, column_span=0, row_span=3)
+series2 = chart2.add_point_series()
+series2.set_point_color((255, 64, 64))
+
+# Adding a chart marker
+chart1.add_chart_marker()
+
+# Generating real time data and updating the charts accordingly
+for i in range(5000):
+    datapoint = {
+        'x': i,
+        'y': math.sin(i) * random.randint(0, i),
+        'z': random.uniform(0, i)
+    }
+    series1.add_datapoints(datapoint)
+    series2.add_datapoints(datapoint)
+
+import lightningchart as lc
+
+chart = lc.GaugeChart(
+    start=0,
+    end=100,
+    value=lc.randfloat(0, 100),
+    angle_interval_start=225,
+    angle_interval_end=-45,
+    thickness=50,
+    theme='',
+    title='Gauge Chart'
+).open()
+
+--- End of LighteningChart/LightningChartPython0.5.0/docs/charts/gauge_chart.html ---
+import lightningchart as lc
+
+chart = lc.ChartXY(theme='default')
+
+point_series = chart.add_point_series()
+point_series.add_datapoints(lc.generate_progressive_xy_data())
+point_series.set_point_size(10)
+
+line_series = chart.add_line_series()
+line_series.add_datapoints(lc.generate_progressive_xy_data())
+chart.add_legend(data=chart)
+
+chart.open()
+
+import lightningchart as lc
+
+chart = lc.ChartXY(theme='default', title='Point Series')
+
+series1 = chart.add_point_series(shape='triangle').add(
+    x=[2, 4, 5, 6],
+    y=[2, 5, 3, 7]
+)
+series2 = chart.add_point_series(shape='square').add_datapoints([
+    {'x': 1, 'y': 1},
+    {'x': 2, 'y': 3},
+    {'x': 3, 'y': 2},
+    {'x': 4, 'y': 4},
+])
+
+series1.set_point_size(20)
+series2.set_point_size(16)
+
+chart.add_legend(data=chart)
+chart.open(real_time=False)
+
+import lightningchart as lc
+
+chart = lc.ChartXY(theme='default', title='Line Series')
+
+series1 = chart.add_line_series().add(
+    x=[1, 2, 3, 4],
+    y=[2, 4, 3, 5]
+)
+series2 = chart.add_line_series().add_datapoints([
+    {'x': 1, 'y': 1},
+    {'x': 2, 'y': 3},
+    {'x': 3, 'y': 5},
+    {'x': 4, 'y': 4},
+])
+series1.set_line_thickness(5)
+series2.set_line_thickness(7)
+
+chart.add_legend(data=chart)
+chart.open(real_time=False)
+
+import lightningchart as lc
+
+chart = lc.ChartXY(theme='default', title='Point Line Series')
+
+series1 = chart.add_point_line_series(shape='triangle').add(
+    x=[1, 2, 3, 4],
+    y=[4, 3, 4, 2]
+)
+series2 = chart.add_point_line_series(shape='circle').add_datapoints([
+    {'x': 1, 'y': 2},
+    {'x': 2, 'y': 4},
+    {'x': 3, 'y': 3},
+    {'x': 4, 'y': 6},
+])
+
+series1.set_line_thickness(5).set_point_size(16).set_point_color((255, 0, 255))
+series2.set_line_thickness(5).set_point_size(10).set_point_color((0, 128, 0))
+
+chart.add_legend(data=chart)
+chart.open(real_time=False)
+
+import lightningchart as lc
+
+chart = lc.ChartXY(theme='default', title='Spline Series')
+
+series1 = chart.add_spline_series().add(
+    x=[1, 2, 3, 4],
+    y=[2, 4, 3, 5]
+)
+series2 = chart.add_spline_series().add_datapoints([
+    {'x': 1, 'y': 3},
+    {'x': 2, 'y': 2},
+    {'x': 3, 'y': 5},
+    {'x': 4, 'y': 4},
+])
+series1.set_line_thickness(5)
+series2.set_line_thickness(5)
+
+chart.add_legend(data=chart)
+chart.open(real_time=False)
+
+import lightningchart as lc
+
+chart = lc.ChartXY(theme='default', title='Step Series')
+
+series1 = chart.add_step_series().add(
+    x=[1, 2.5, 3.5, 4],
+    y=[2, 4, 3, 5]
+)
+series2 = chart.add_step_series().add_datapoints([
+    {'x': 1, 'y': 3},
+    {'x': 2, 'y': 2},
+    {'x': 3, 'y': 5},
+    {'x': 4, 'y': 4},
+])
+series1.set_line_thickness(5)
+series2.set_line_thickness(5)
+
+chart.add_legend(data=chart)
+chart.open(real_time=False)
+
+import lightningchart as lc
+
+chart = lc.ChartXY(theme='default', title='Area Series')
+
+series1 = chart.add_area_series().add(
+    x=[1, 2, 3, 4],
+    y=[3, 2, 6, 8]
+)
+series2 = chart.add_area_series().add_datapoints([
+    {'x': 1, 'y': 5},
+    {'x': 2, 'y': 4},
+    {'x': 3, 'y': 2},
+    {'x': 4, 'y': 3},
+])
+
+chart.add_legend(data=chart)
+chart.open(real_time=False)
+
+import lightningchart as lc
+
+data1 = [
+    {'position': 1, 'low': 1, 'high': 2},
+    {'position': 2, 'low': 0, 'high': 3},
+    {'position': 3, 'low': 3, 'high': 4},
+    {'position': 4, 'low': 4, 'high': 5},
+    {'position': 5, 'low': 3, 'high': 5},
+]
+data2 = [
+    {'position': 1, 'low': 2, 'high': 4},
+    {'position': 2, 'low': 4, 'high': 5},
+    {'position': 3, 'low': 4, 'high': 5},
+    {'position': 4, 'low': 3, 'high': 4},
+    {'position': 5, 'low': 2, 'high': 3},
+]
+
+chart = lc.ChartXY(theme='default', title='Area Range Series')
+series1 = chart.add_area_range_series().add_datapoints(data1)
+series2 = chart.add_area_range_series().add_datapoints(data2)
+
+chart.add_legend(data=chart)
+chart.open(real_time=False)
+
+import lightningchart as lc
+
+chart = lc.ChartXY(theme='default', title='OHLC Series')
+
+series = chart.add_ohlc_series()
+series.add([
+    (0, 3, 6, 2, 4),  # X, O, H, L, C
+    (1, 4, 8, 3, 5),
+    (2, 2, 5, 1, 3),
+])
+
+chart.add_legend(data=series)
+chart.open(real_time=False)
+
+import lightningchart as lc
+
+chart = lc.ChartXY(theme='default', title='Box Series')
+
+series = chart.add_box_series().add(
+    start=1,
+    end=2,
+    median=5,
+    lower_quartile=2.5,
+    upper_quartile=7.5,
+    lower_extreme=0,
+    upper_extreme=9
+)
+series.add(
+    start=3,
+    end=4,
+    median=4,
+    lower_quartile=2,
+    upper_quartile=5,
+    lower_extreme=1,
+    upper_extreme=6
+)
+
+chart.add_legend(data=series)
+chart.open(real_time=False)
+
+import lightningchart as lc
+
+heatmap_data = [
+    [1, 4, 5, 6],
+    [2, 3, 4, 5],
+    [1, 5, 3, 7],
+    [2, 2, 3, 4],
+]
+
+chart = lc.ChartXY(theme='default', title='Heatmap Grid Series')
+series = chart.add_heatmap_grid_series(columns=4, rows=4)
+series.invalidate_intensity_values(heatmap_data)
+series.set_paletted_fill_style(
+    min_value=0,
+    max_value=9,
+    min_color_rgba=(255, 0, 0),
+    max_color_rgba=(0, 0, 255),
+    look_up_property='value'
+)
+
+chart.add_legend(data=series)
+chart.open(real_time=False)
+
+import lightningchart as lc
+
+heatmap_data = [
+    [1, 4, 5, 6],
+    [2, 3, 4, 5],
+    [1, 5, 3, 7],
+    [2, 2, 3, 4],
+]
+
+chart = lc.ChartXY(theme='default', title='Heatmap Scrolling Grid Series')
+series = chart.add_heatmap_scrolling_grid_series(resolution=4)
+series.add_intensity_values(heatmap_data)
+series.set_paletted_fill_style(
+    min_value=0,
+    max_value=9,
+    min_color_rgba=(255, 0, 0),
+    max_color_rgba=(0, 0, 255),
+    look_up_property='value'
+)
+
+chart.add_legend(data=series)
+chart.open(real_time=False)
+
+series.add_intensity_values([[6, 5, 7, 8]])
+
+--- End of LighteningChart/LightningChartPython0.5.0/docs/charts/chart_xy.html ---
+import lightningchart as lc
+
+data = [
+    {'name': 'A', 'value': 3},
+    {'name': 'B', 'value': 1},
+    {'name': 'C', 'value': 2}
+]
+
+chart = lc.PyramidChart(
+    data=data,
+    slice_mode='height',
+    theme='',
+    title='Pyramid Chart'
+).open()
+
+--- End of LighteningChart/LightningChartPython0.5.0/docs/charts/pyramid_chart.html ---
+import lightningchart as lc
+
+data = lc.generate_random_matrix_data(columns=10, rows=10)
+
+chart = lc.Surface3D(
+    data=data,
+    min_value=None,
+    max_value=None,
+    min_color=(192, 0, 0),
+    max_color=(0, 255, 255),
+    theme='',
+    title='3D Surface',
+    xlabel='x',
+    ylabel='y',
+    zlabel='z'
+).open()
+
+--- End of LighteningChart/LightningChartPython0.5.0/docs/charts/surface_chart_3d.html ---
+import lightningchart as lc
+
+data = lc.generate_random_matrix_data(columns=100, rows=100)
+
+chart = lc.Heatmap(
+    data=data,
+    min_value=None,
+    max_value=None,
+    min_color=(0, 255, 255),
+    max_color=(192, 0, 0),
+    theme='',
+    title='Heat Map',
+    xlabel='x',
+    ylabel='y'
+).open()
+
+--- End of LighteningChart/LightningChartPython0.5.0/docs/charts/heat_map.html ---
+--- End of LighteningChart/LightningChartPython0.5.0/docs/charts/index.html ---
+import lightningchart as lc
+
+x = lc.generate_progressive_array(25)
+y = []
+temp = 0
+for i in range(25):
+    temp = temp + lc.rand() * 2 - 1
+    y.append(temp)
+
+chart = lc.LineChart(
+    x=x,
+    y=y,
+    line_type='pointline',
+    line_color=(0, 128, 255),
+    line_width=5,
+    point_type='triangle',
+    point_color=(255, 0, 0),
+    point_size=10,
+    theme='',
+    title='Line Chart',
+    xlabel='x',
+    ylabel='y'
+).open()
+
+--- End of LighteningChart/LightningChartPython0.5.0/docs/charts/line_chart.html ---
+import lightningchart as lc
+
+data = [lc.generate_random_array() for i in range(10)]
+
+chart = lc.BoxPlot(
+    data=data,
+    theme='',
+    title='Box Plot',
+    xlabel='x',
+    ylabel='y'
+).open()
+
+--- End of LighteningChart/LightningChartPython0.5.0/docs/charts/box_plot.html ---
+import lightningchart as lc
+
+data = [lc.generate_random_array(
+    amount=100, max_value=lc.randint(0, 10)
+) for i in range(3)]
+
+chart = lc.AreaChart(
+    data=data,
+    theme='',
+    title='Area Chart',
+    xlabel='x',
+    ylabel='y'
+).open()
+
+--- End of LighteningChart/LightningChartPython0.5.0/docs/charts/area_chart.html ---
+import lightningchart as lc
+
+x = lc.generate_random_array(20)
+y = lc.generate_progressive_array(20)
+z = lc.generate_random_array(20)
+
+chart = lc.LineChart3D(
+    x=x,
+    y=y,
+    z=z,
+    line_type='pointline',
+    line_color=(0, 128, 255),
+    line_width=10,
+    point_type='sphere',
+    point_color=(255, 0, 0),
+    point_size=25,
+    theme='',
+    title='3D Line Chart',
+    xlabel='x',
+    ylabel='y',
+    zlabel='z'
+).open()
+
+--- End of LighteningChart/LightningChartPython0.5.0/docs/charts/line_chart_3d.html ---
+import lightningchart as lc
+
+data = []
+for i in range(1, 27):
+    data.append({'category': chr(ord('A') + i - 1), 'value': lc.rand()})
+
+chart = lc.BarChart(
+    data=data,
+    theme='',
+    vertical=True,
+    title='Bar Chart'
+)
+chart.open()
+
+--- End of LighteningChart/LightningChartPython0.5.0/docs/charts/bar_chart.html ---
+import lightningchart as lc
+
+chart = lc.Chart3D(theme='default')
+
+point_series = chart.add_point_series()
+point_series.add(
+    x=lc.generate_random_array(100, max_value=100),
+    y=lc.generate_random_array(100, max_value=100),
+    z=lc.generate_random_array(100, max_value=100),
+)
+point_series.set_point_size(10)
+
+line_series = chart.add_line_series()
+line_series.add(
+    x=lc.generate_random_array(100, max_value=100),
+    y=lc.generate_progressive_array(100),
+    z=lc.generate_random_array(100, max_value=100),
+)
+chart.add_legend(data=chart)
+
+chart.open()
+
+import lightningchart as lc
+
+chart = lc.Chart3D(theme='default', title='Point Series 3D')
+
+series1 = chart.add_point_series().add(
+    x=[2, 4, 5, 6],
+    y=[2, 5, 3, 7],
+    z=[1, 3, 2, 5],
+)
+series2 = chart.add_point_series().add_datapoints([
+    {'x': 1, 'y': 1, 'z': 1},
+    {'x': 2, 'y': 3, 'z': 2},
+    {'x': 3, 'y': 2, 'z': 3},
+    {'x': 4, 'y': 4, 'z': 4},
+])
+
+series1.set_point_shape('cube').set_point_size(24)
+series2.set_point_shape('sphere').set_point_size(30)
+
+chart.add_legend(data=chart)
+chart.open(real_time=False)
+
+import lightningchart as lc
+
+chart = lc.Chart3D(theme='default', title='Line Series 3D')
+
+series1 = chart.add_line_series().add(
+    x=[1, 2, 3, 4],
+    y=[2, 4, 3, 5],
+    z=[6, 5, 4, 3]
+)
+series2 = chart.add_line_series().add_datapoints([
+    {'x': 1, 'y': 1, 'z': 1},
+    {'x': 2, 'y': 3, 'z': 2},
+    {'x': 3, 'y': 5, 'z': 3},
+    {'x': 4, 'y': 4, 'z': 4},
+])
+series1.set_line_thickness(8)
+series2.set_line_thickness(8)
+
+chart.add_legend(data=chart)
+chart.open(real_time=False)
+
+import lightningchart as lc
+
+chart = lc.Chart3D(theme='default', title='Point Line Series 3D')
+
+series1 = chart.add_point_line_series().add(
+    x=[1, 2, 3, 4],
+    y=[4, 3, 4, 2],
+    z=[2, 1, 2, 1]
+)
+series2 = chart.add_point_line_series().add_datapoints([
+    {'x': 1, 'y': 5, 'z': 2},
+    {'x': 1, 'y': 4, 'z': 4},
+    {'x': 3, 'y': 3, 'z': 2},
+    {'x': 4, 'y': 6, 'z': 4},
+])
+
+series1.set_point_shape('sphere').set_line_thickness(5).set_point_size(16).set_point_color((255, 0, 255))
+series2.set_point_shape('cube').set_line_thickness(7).set_point_size(14).set_point_color((0, 128, 0))
+
+chart.add_legend(data=chart)
+chart.open(real_time=False)
+
+import lightningchart as lc
+
+box_data = [
+    {
+        "xCenter": 1, "yCenter": 1, "zCenter": 1,  # coordinates of Box in Axis values.
+        "xSize": 1, "ySize": 1, "zSize": 1  # size of Box in Axis values.
+    },
+    {
+        "xCenter": 2, "yCenter": 2, "zCenter": 2,
+        "xSize": 1, "ySize": 2, "zSize": 1
+    }
+]
+
+chart = lc.Chart3D(theme='default', title='Box Series 3D')
+series = chart.add_box_series()
+series.add(box_data)
+
+chart.add_legend(data=series)
+chart.open(real_time=False)
+
+import lightningchart as lc
+
+surface_data = [
+    [1, 4, 5, 6],
+    [2, 3, 4, 5],
+    [1, 5, 3, 7],
+    [2, 2, 3, 4],
+]
+
+chart = lc.Chart3D(theme='default', title='Surface Grid Series')
+series = chart.add_surface_grid_series(columns=4, rows=4)
+series.invalidate_intensity_values(surface_data)
+series.invalidate_height_map(surface_data)
+series.set_paletted_fill_style(
+    min_value=1,
+    max_value=7,
+    min_color_rgba=(255, 0, 0),
+    max_color_rgba=(0, 255, 255),
+    look_up_property='y'
+)
+
+chart.add_legend(data=series)
+chart.open(real_time=False)
+
+import lightningchart as lc
+
+surface_data = [
+    [1, 4, 5, 6],
+    [2, 3, 4, 5],
+    [1, 5, 3, 7],
+    [2, 2, 3, 4],
+]
+
+chart = lc.Chart3D(theme='default', title='Surface Scrolling Grid Series')
+series = chart.add_surface_scrolling_grid_series(columns=4, rows=4)
+series.set_paletted_fill_style(
+    min_value=1,
+    max_value=7,
+    min_color_rgba=(255, 0, 0),
+    max_color_rgba=(0, 255, 255),
+    look_up_property='y'
+)
+series.add_values(surface_data)
+
+chart.add_legend(data=series)
+chart.open(real_time=False)
+
+series.add_values([[1, 2, 4, 8]])
+
+--- End of LighteningChart/LightningChartPython0.5.0/docs/charts/chart_3d.html ---
+import lightningchart as lc
+
+data = [
+    {'name': 'A', 'value': 4},
+    {'name': 'B', 'value': 3},
+    {'name': 'C', 'value': 2}
+]
+
+chart = lc.PieChart(
+    data=data,
+    inner_radius=50,
+    title='Pie Chart',
+    theme='',
+    labels_inside_slices=False
+).open()
+
+--- End of LighteningChart/LightningChartPython0.5.0/docs/charts/pie_chart.html ---
+import lightningchart as lc
+import numpy as np
+
+n = 10000
+x = np.random.normal(size=n)
+y = np.random.normal(size=n)
+z = np.random.normal(size=n)
+
+chart = lc.ScatterPlot3D(
+    x=x,
+    y=y,
+    z=z,
+    point_type='sphere',
+    point_color=(0, 128, 255),
+    point_size=10,
+    theme='default',
+    title='3D Scatter Plot',
+    xlabel='x',
+    ylabel='y',
+    zlabel='z'
+).open()
+
+--- End of LighteningChart/LightningChartPython0.5.0/docs/charts/scatter_plot_3d.html ---
+import lightningchart as lc
+
+x = lc.generate_progressive_array()
+open = lc.generate_random_array()
+high = lc.generate_random_array()
+low = lc.generate_random_array()
+close = lc.generate_random_array()
+xohlc = lc.generate_OHLC_data(
+    starting_from=10, min_value=0, max_value=1
+)
+
+chart = lc.OHLC_Chart(
+    x=x,
+    open=open,
+    high=high,
+    low=low,
+    close=close,
+    xohlc=xohlc,
+    theme='',
+    title='OHLC Chart',
+    xlabel='x',
+    ylabel='y'
+).open()
+
+--- End of LighteningChart/LightningChartPython0.5.0/docs/charts/ohlc_chart.html ---
+import lightningchart as lc
+import numpy as np
+
+n = 100000
+x = np.random.normal(size=n)
+y = np.random.normal(size=n)
+
+data = []
+for i in range(n):
+    data.append({
+        'x': x[i],
+        'y': y[i],
+        'value': np.random.uniform()
+    })
+
+chart = lc.ScatterPlot(
+    point_type='triangle',
+    theme='',
+    title='Scatter Plot',
+    xlabel='x',
+    ylabel='y'
+)
+series = chart.default_series.add_datapoints(data)
+series.set_individual_point_value_enabled(True)
+series.set_paletted_point_fill_style(0, 1, (0, 64, 128), (255, 128, 64))
+legend = chart.add_legend(data=chart).set_title('')
+chart.open()
+
+--- End of LighteningChart/LightningChartPython0.5.0/docs/charts/scatter_plot.html ---
+import lightningchart as lc
+
+data = lc.generate_Box3D_data()
+
+chart = lc.Box3D(
+    data=data,
+    box_color=(0, 255, 255),
+    theme='',
+    title='3D Bars',
+    xlabel='x',
+    ylabel='y'
+).open()
+
+--- End of LighteningChart/LightningChartPython0.5.0/docs/charts/box_chart_3d.html ---
+import lightningchart as lc
+
+data = [
+    [2, 1, 2, 0, 2, 1],
+    [4, 5, 3, 5, 6, 4],
+    [8, 6, 7, 8, 7, 6],
+    [10, 9, 8, 9, 10, 9],
+]
+
+chart = lc.StackedAreaChart(
+    data=data,
+    theme='',
+    title='Stacked Area Chart',
+    xlabel='x',
+    ylabel='y'
+).open()
+chart.legend()
+
+--- End of LighteningChart/LightningChartPython0.5.0/docs/charts/stacked_area_chart.html ---
+import lightningchart as lc
+
+data = [
+    {'name': 'A', 'value': 1},
+    {'name': 'B', 'value': 3},
+    {'name': 'C', 'value': 2}
+]
+
+chart = lc.FunnelChart(
+    data=data,
+    slice_mode='height',
+    theme='',
+    title='Funnel Chart'
+).open()
+
+--- End of LighteningChart/LightningChartPython0.5.0/docs/charts/funnel_chart.html ---
