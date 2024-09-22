@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time Speech Transcription</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        #transcription {
+            width: 80%;
+            height: 300px;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 20px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Real-time Speech Transcription</h1>
+    <button id="toggleButton">Start Transcription</button>
+    <div id="transcription"></div>
+
+    <script>
+        const toggleButton = document.getElementById('toggleButton');
+        const transcriptionDiv = document.getElementById('transcription');
+        let recognition;
+        let isTranscribing = false;
+
+        if ('webkitSpeechRecognition' in window) {
+            recognition = new webkitSpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+
+            recognition.onresult = (event) => {
+                let interimTranscript = '';
+                let finalTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; ++i) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    } else {
+                        interimTranscript += event.results[i][0].transcript;
+                    }
+                }
+
+                transcriptionDiv.innerHTML = finalTranscript + '<i style="color: #999;">' + interimTranscript + '</i>';
+            };
+
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error', event.error);
+            };
+
+            toggleButton.addEventListener('click', () => {
+                if (isTranscribing) {
+                    recognition.stop();
+                    toggleButton.textContent = 'Start Transcription';
+                    isTranscribing = false;
+                } else {
+                    recognition.start();
+                    toggleButton.textContent = 'Stop Transcription';
+                    isTranscribing = true;
+                }
+            });
+        } else {
+            toggleButton.style.display = 'none';
+            transcriptionDiv.innerHTML = 'Web Speech API is not supported in this browser.';
+        }
+    </script>
+</body>
+</html>
