@@ -127,3 +127,33 @@ For the Python-based projects (dashboard_realtime.py), follow these steps:
 Note: Make sure you have the necessary permissions to install packages and run Python scripts on your system.
 
 Feel free to explore each project and its source code. If you have any questions or suggestions, please open an issue or submit a pull request.
+
+## Running Aider
+
+Aider is an AI-powered coding assistant that can help you with your development tasks. To use Aider with this project, follow these steps:
+
+1. Install Aider:
+   ```
+   pip install aider-chat
+   ```
+
+2. Set up your OpenAI API key:
+   - Sign up for an OpenAI account and obtain an API key.
+   - Set the API key as an environment variable:
+     ```
+     export OPENAI_API_KEY=your_api_key_here
+     ```
+
+3. Navigate to the project directory:
+   ```
+   cd path/to/AiderProjects
+   ```
+
+4. Start Aider:
+   ```
+   aider
+   ```
+
+5. Once Aider is running, you can start asking questions or requesting changes to your code. Aider will provide suggestions and help you implement changes.
+
+For more information on using Aider, visit the [Aider documentation](https://aider.chat/docs/).
