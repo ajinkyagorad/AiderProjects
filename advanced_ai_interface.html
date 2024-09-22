@@ -190,8 +190,8 @@
         }
         #debug-box {
             position: fixed;
-            top: 10px;
-            right: 10px;
+            bottom: 10px;
+            left: 10px;
             width: 200px;
             height: 100px;
             background-color: rgba(0, 0, 0, 0.7);
@@ -200,6 +200,7 @@
             font-size: 10px;
             overflow-y: auto;
             color: #00FF00;
+            z-index: 1000;
         }
         .fading-text {
             animation: fadeInOut 4s infinite;
@@ -213,6 +214,7 @@
             right: 10px;
             display: flex;
             gap: 5px;
+            z-index: 1001;
         }
         #control-buttons button,
         #control-buttons select {
@@ -313,6 +315,7 @@
         createSpectrogram();
         // OpenAI API integration
         const apiKeyInput = document.getElementById('api-key-input');
+        apiKeyInput.value = API_KEY; // Set the API key from config.js
         const chatHistory = document.getElementById('chat-history');
         const rightPanel = document.getElementById('right-panel');
         const helpButton = document.getElementById('help-button');
