@@ -229,12 +229,12 @@
     <canvas id="starfield"></canvas>
     <div id="main-container">
         <div id="left-panel">
-            <div id="settings-box" style="display: none;">
-                <input type="password" id="openai-api-key-input" placeholder="Enter your OpenAI API key">
-                <input type="password" id="aiml-api-key-input" placeholder="Enter your AIML API key">
+            <div id="settings-box">
+                <input type="password" id="openai-api-key-input" class="api-key-input" placeholder="Enter your OpenAI API key">
+                <input type="password" id="aiml-api-key-input" class="api-key-input" placeholder="Enter your AIML API key">
                 <button id="save-settings">Save Settings</button>
             </div>
-            <button id="toggle-settings">Settings</button>
+            <button id="toggle-settings">Toggle Settings</button>
             <div id="transcription-container">
                 <div id="transcription-container">
                     <div id="transcription"></div>
@@ -321,21 +321,25 @@
         async function loadApiKeys() {
             try {
                 const response = await fetch('config.json');
-                const config = await response.json();
-                OPENAI_API_KEY = config.openai_api_key || localStorage.getItem('openaiApiKey') || '';
-                AIML_API_KEY = config.aiml_api_key || localStorage.getItem('aimlApiKey') || '';
-                openaiApiKeyInput.value = OPENAI_API_KEY;
-                aimlApiKeyInput.value = AIML_API_KEY;
+                if (response.ok) {
+                    const config = await response.json();
+                    OPENAI_API_KEY = config.openai_api_key || '';
+                    AIML_API_KEY = config.aiml_api_key || '';
+                } else {
+                    throw new Error('Config file not found or invalid');
+                }
             } catch (error) {
                 console.error('Error loading config file:', error);
                 OPENAI_API_KEY = localStorage.getItem('openaiApiKey') || '';
                 AIML_API_KEY = localStorage.getItem('aimlApiKey') || '';
-                openaiApiKeyInput.value = OPENAI_API_KEY;
-                aimlApiKeyInput.value = AIML_API_KEY;
             }
+            
+            openaiApiKeyInput.value = OPENAI_API_KEY;
+            aimlApiKeyInput.value = AIML_API_KEY;
         }
 
-        loadApiKeys();
+        // Load API keys when the page loads
+        window.addEventListener('DOMContentLoaded', loadApiKeys);
         const chatHistory = document.getElementById('chat-history');
         const rightPanel = document.getElementById('right-panel');
         const helpButton = document.getElementById('help-button');
@@ -758,19 +762,13 @@
         // Save settings
         const saveSettingsButton = document.getElementById('save-settings');
         saveSettingsButton.addEventListener('click', () => {
-            OPENAI_API_KEY = document.getElementById('openai-api-key-input').value;
-            AIML_API_KEY = document.getElementById('aiml-api-key-input').value;
+            OPENAI_API_KEY = openaiApiKeyInput.value;
+            AIML_API_KEY = aimlApiKeyInput.value;
             localStorage.setItem('openaiApiKey', OPENAI_API_KEY);
             localStorage.setItem('aimlApiKey', AIML_API_KEY);
             settingsBox.style.display = 'none';
             alert('Settings saved!');
         });
-
-        // Load saved API key
-        const savedApiKey = localStorage.getItem('apiKey');
-        if (savedApiKey) {
-            document.getElementById('api-key-input').value = savedApiKey;
-        }
 
         // Update help content
         function updateHelpContent() {
