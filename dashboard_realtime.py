@@ -1,5 +1,5 @@
 from lightningchart import (
-    LightningChart, ChartXY, AxisScrollStrategies, LineSeriesXY,
+    ChartXY, AxisScrollStrategies, LineSeriesXY,
     ColorHEX, SolidLine, ColorRGBA, SolidFill, PointShape,
     UIElementBuilders, UIOrigins, FontSettings, Themes
 )
@@ -8,11 +8,8 @@ import math
 import random
 
 def create_dashboard():
-    # Create a LightningChart instance
-    chart = LightningChart(Themes.dark)
-
-    # Create a ChartXY
-    chart_xy = chart.create_chart_xy()
+    # Create a ChartXY instance
+    chart_xy = ChartXY({"theme": Themes.dark})
     chart_xy.set_title("Real-time Multi-Series Dashboard")
 
     # Style the chart
@@ -21,15 +18,15 @@ def create_dashboard():
     chart_xy.get_default_axis_x().set_scroll_strategy(AxisScrollStrategies.progressive)
 
     # Add line series
-    line_series1 = chart_xy.add_line_series(LineSeriesXY)
+    line_series1 = chart_xy.add_line_series()
     line_series1.set_name("Sine Wave")
     line_series1.set_stroke(SolidLine(ColorHEX("#FF1919"), 2))
 
-    line_series2 = chart_xy.add_line_series(LineSeriesXY)
+    line_series2 = chart_xy.add_line_series()
     line_series2.set_name("Cosine Wave")
     line_series2.set_stroke(SolidLine(ColorHEX("#19FF19"), 2))
 
-    line_series3 = chart_xy.add_line_series(LineSeriesXY)
+    line_series3 = chart_xy.add_line_series()
     line_series3.set_name("Random Walk")
     line_series3.set_stroke(SolidLine(ColorHEX("#1919FF"), 2))
 
@@ -55,7 +52,7 @@ def create_dashboard():
         .set_font_size(14)
     )
 
-    return chart, line_series1, line_series2, line_series3, value_display1, value_display2, value_display3
+    return chart_xy, line_series1, line_series2, line_series3, value_display1, value_display2, value_display3
 
 def generate_data():
     """Generate sine, cosine, and random walk data points."""
@@ -71,7 +68,7 @@ def generate_data():
         time.sleep(0.01)
 
 def main():
-    chart, line_series1, line_series2, line_series3, value_display1, value_display2, value_display3 = create_dashboard()
+    chart_xy, line_series1, line_series2, line_series3, value_display1, value_display2, value_display3 = create_dashboard()
     data_generator = generate_data()
 
     # Main loop to update the chart
@@ -82,12 +79,15 @@ def main():
         
         # Keep only the last 1000 points
         if t > 1000:
-            chart.get_default_axis_x().set_interval(t - 1000, t)
+            chart_xy.get_default_axis_x().set_interval(t - 1000, t)
         
         # Update the value displays
         value_display1.set_text(f"Sine: {y1:.2f}")
         value_display2.set_text(f"Cosine: {y2:.2f}")
         value_display3.set_text(f"Random: {y3:.2f}")
+
+        # Render the chart
+        chart_xy.render()
 
 if __name__ == "__main__":
     main()
