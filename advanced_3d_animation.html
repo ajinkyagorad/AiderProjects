@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced 3D Animation with Time Travel</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        #info { position: absolute; top: 10px; width: 100%; text-align: center; color: white; }
+        #controls { position: absolute; bottom: 10px; width: 100%; text-align: center; }
+        #timeline { position: absolute; bottom: 50px; width: 80%; left: 10%; }
+        #sensorData { position: absolute; top: 10px; right: 10px; color: white; }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.7.7/dat.gui.min.js"></script>
+</head>
+<body>
+    <div id="info">Advanced 3D Animation with Time Travel</div>
+    <div id="controls">
+        <button id="playPause">Pause</button>
+        <button id="record">Start Recording</button>
+        <button id="save">Save Recording</button>
+    </div>
+    <input type="range" id="timeline" min="0" max="100" value="100">
+    <div id="sensorData"></div>
+
+    <script>
+        // Scene setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0x404040);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
+        scene.add(directionalLight);
+
+        // Create a complex 3D object (e.g., a city)
+        const cityGroup = new THREE.Group();
+        for (let i = 0; i < 50; i++) {
+            const geometry = new THREE.BoxGeometry(
+                Math.random() * 2 + 1,
+                Math.random() * 10 + 5,
+                Math.random() * 2 + 1
+            );
+            const material = new THREE.MeshPhongMaterial({ color: Math.random() * 0xffffff });
+            const building = new THREE.Mesh(geometry, material);
+            building.position.set(
+                Math.random() * 60 - 30,
+                building.geometry.parameters.height / 2,
+                Math.random() * 60 - 30
+            );
+            cityGroup.add(building);
+        }
+        scene.add(cityGroup);
+
+        // Add a moving object (e.g., a drone)
+        const droneGeometry = new THREE.ConeGeometry(0.5, 1, 32);
+        const droneMaterial = new THREE.MeshPhongMaterial({ color: 0xff0000 });
+        const drone = new THREE.Mesh(droneGeometry, droneMaterial);
+        scene.add(drone);
+
+        // Camera position
+        camera.position.set(0, 30, 50);
+        camera.lookAt(scene.position);
+
+        // Animation variables
+        let animationId;
+        let isPaused = false;
+        let time = 0;
+        const timeStep = 0.01;
+        let isRecording = false;
+        const recordingData = [];
+
+        // Sensor data simulation
+        const sensorData = {
+            temperature: 20,
+            humidity: 50,
+            pressure: 1013,
+            audio: 0,
+            lidar: []
+        };
+
+        // GUI setup
+        const gui = new dat.GUI();
+        const cameraFolder = gui.addFolder('Camera');
+        cameraFolder.add(camera.position, 'x', -100, 100);
+        cameraFolder.add(camera.position, 'y', 0, 100);
+        cameraFolder.add(camera.position, 'z', -100, 100);
+        cameraFolder.open();
+
+        const droneFolder = gui.addFolder('Drone');
+        droneFolder.add(drone.position, 'x', -30, 30);
+        droneFolder.add(drone.position, 'y', 0, 50);
+        droneFolder.add(drone.position, 'z', -30, 30);
+        droneFolder.open();
+
+        // Animation function
+        function animate() {
+            animationId = requestAnimationFrame(animate);
+            if (!isPaused) {
+                time += timeStep;
+                
+                // Animate drone
+                drone.position.y = 10 + Math.sin(time) * 5;
+                drone.position.x = Math.cos(time) * 20;
+                drone.position.z = Math.sin(time * 0.5) * 20;
+                
+                // Rotate city
+                cityGroup.rotation.y += 0.001;
+                
+                // Update sensor data
+                updateSensorData();
+                
+                // Record data if recording is active
+                if (isRecording) {
+                    recordData();
+                }
+            }
+            renderer.render(scene, camera);
+        }
+
+        // Start animation
+        animate();
+
+        // Sensor data update function
+        function updateSensorData() {
+            sensorData.temperature += (Math.random() - 0.5) * 0.1;
+            sensorData.humidity += (Math.random() - 0.5) * 0.5;
+            sensorData.pressure += (Math.random() - 0.5) * 0.2;
+            sensorData.audio = Math.random() * 100;
+            sensorData.lidar = Array(10).fill().map(() => Math.random() * 50);
+            
+            document.getElementById('sensorData').innerHTML = `
+                Temperature: ${sensorData.temperature.toFixed(1)}°C<br>
+                Humidity: ${sensorData.humidity.toFixed(1)}%<br>
+                Pressure: ${sensorData.pressure.toFixed(1)} hPa<br>
+                Audio Level: ${sensorData.audio.toFixed(1)} dB<br>
+                LIDAR: ${sensorData.lidar.map(v => v.toFixed(1)).join(', ')}
+            `;
+        }
+
+        // Recording function
+        function recordData() {
+            recordingData.push({
+                time: time,
+                dronePosition: { ...drone.position },
+                cameraPosition: { ...camera.position },
+                sensorData: { ...sensorData }
+            });
+        }
+
+        // Playback function
+        function playbackRecording(index) {
+            if (index >= recordingData.length) {
+                return;
+            }
+            
+            const frame = recordingData[index];
+            time = frame.time;
+            drone.position.set(frame.dronePosition.x, frame.dronePosition.y, frame.dronePosition.z);
+            camera.position.set(frame.cameraPosition.x, frame.cameraPosition.y, frame.cameraPosition.z);
+            Object.assign(sensorData, frame.sensorData);
+            updateSensorData();
+            
+            renderer.render(scene, camera);
+            
+            requestAnimationFrame(() => playbackRecording(index + 1));
+        }
+
+        // Event listeners
+        document.getElementById('playPause').addEventListener('click', () => {
+            isPaused = !isPaused;
+            document.getElementById('playPause').textContent = isPaused ? 'Play' : 'Pause';
+        });
+
+        document.getElementById('record').addEventListener('click', () => {
+            isRecording = !isRecording;
+            document.getElementById('record').textContent = isRecording ? 'Stop Recording' : 'Start Recording';
+            if (isRecording) {
+                recordingData.length = 0;
+            }
+        });
+
+        document.getElementById('save').addEventListener('click', () => {
+            const blob = new Blob([JSON.stringify(recordingData)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'animation_recording.json';
+            a.click();
+        });
+
+        document.getElementById('timeline').addEventListener('input', (e) => {
+            const progress = e.target.value / 100;
+            const index = Math.floor(progress * recordingData.length);
+            playbackRecording(index);
+        });
+
+        // Window resize handler
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // File loading system
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = '.json';
+        fileInput.style.display = 'none';
+        document.body.appendChild(fileInput);
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    recordingData.length = 0;
+                    Object.assign(recordingData, JSON.parse(event.target.result));
+                    document.getElementById('timeline').max = recordingData.length - 1;
+                    document.getElementById('timeline').value = 0;
+                    playbackRecording(0);
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        const loadButton = document.createElement('button');
+        loadButton.textContent = 'Load Recording';
+        loadButton.addEventListener('click', () => fileInput.click());
+        document.getElementById('controls').appendChild(loadButton);
+    </script>
+</body>
+</html>
