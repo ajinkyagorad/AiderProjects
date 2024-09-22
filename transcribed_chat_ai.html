@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transcribed Chat AI</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000;
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        #apiKeyInput, #userInput {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #333;
+            color: #fff;
+            border: 1px solid #555;
+        }
+        #transcription, #aiResponse {
+            width: 100%;
+            height: 200px;
+            border: 2px solid #fff;
+            padding: 10px;
+            margin: 10px 0;
+            overflow-y: auto;
+            font-size: 18px;
+            line-height: 1.5;
+        }
+        .button {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            border: 2px solid #fff;
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .button:hover {
+            background-color: rgba(255, 255, 255, 0.3);
+        }
+        #canvas {
+            border: 2px solid #fff;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <input type="password" id="apiKeyInput" placeholder="Enter your OpenAI API key">
+    <button id="startButton" class="button">Start Transcription</button>
+    <div id="transcription"></div>
+    <textarea id="userInput" placeholder="Or type your message here"></textarea>
+    <button id="sendButton" class="button">Send to AI</button>
+    <div id="aiResponse"></div>
+    <canvas id="canvas" width="400" height="400"></canvas>
+
+    <script>
+        const startButton = document.getElementById('startButton');
+        const sendButton = document.getElementById('sendButton');
+        const transcriptionDiv = document.getElementById('transcription');
+        const userInput = document.getElementById('userInput');
+        const aiResponse = document.getElementById('aiResponse');
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let recognition;
+        let isTranscribing = false;
+
+        startButton.addEventListener('click', toggleTranscription);
+        sendButton.addEventListener('click', sendToAI);
+
+        function toggleTranscription() {
+            if (isTranscribing) {
+                recognition.stop();
+                startButton.textContent = 'Start Transcription';
+                isTranscribing = false;
+            } else {
+                startTranscription();
+                startButton.textContent = 'Stop Transcription';
+                isTranscribing = true;
+            }
+        }
+
+        function startTranscription() {
+            if ('webkitSpeechRecognition' in window) {
+                recognition = new webkitSpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+
+                recognition.onresult = (event) => {
+                    let interimTranscript = '';
+                    let finalTranscript = '';
+
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        if (event.results[i].isFinal) {
+                            finalTranscript += event.results[i][0].transcript;
+                            processCommand(finalTranscript.trim().toLowerCase());
+                        } else {
+                            interimTranscript += event.results[i][0].transcript;
+                        }
+                    }
+
+                    transcriptionDiv.innerHTML = finalTranscript + '<i style="color: #999;">' + interimTranscript + '</i>';
+                    userInput.value = finalTranscript;
+                };
+
+                recognition.onerror = (event) => {
+                    console.error('Speech recognition error', event.error);
+                };
+
+                recognition.start();
+            } else {
+                transcriptionDiv.innerHTML = 'Web Speech API is not supported in this browser.';
+            }
+        }
+
+        function processCommand(command) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.lineWidth = 2;
+
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            const size = Math.min(canvas.width, canvas.height) / 4;
+
+            if (command.includes('rectangle') || command.includes('draw rectangle') || command.includes('show rectangle')) {
+                ctx.strokeRect(centerX - size / 2, centerY - size / 2, size, size);
+            } else if (command.includes('circle') || command.includes('draw circle') || command.includes('show circle')) {
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, size / 2, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+        }
+
+        async function sendToAI() {
+            const apiKey = apiKeyInput.value;
+            const userMessage = userInput.value;
+
+            if (!apiKey) {
+                alert('Please enter your OpenAI API key');
+                return;
+            }
+
+            if (!userMessage) {
+                alert('Please enter a message');
+                return;
+            }
+
+            aiResponse.innerHTML = 'Thinking...';
+
+            try {
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-3.5-turbo',
+                        messages: [{ role: 'user', content: userMessage }],
+                        max_tokens: 150
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.choices && data.choices.length > 0) {
+                    aiResponse.innerHTML = data.choices[0].message.content;
+                } else {
+                    aiResponse.innerHTML = 'Sorry, I couldn\'t generate a response.';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                aiResponse.innerHTML = 'An error occurred while communicating with the AI.';
+            }
+        }
+    </script>
+</body>
+</html>
