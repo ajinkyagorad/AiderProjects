@@ -1,3 +1,6 @@
+# Note: This script requires the LightningChart library. Install it using:
+# pip install lightningchart
+
 from lightningchart import (
     ChartXY, AxisScrollStrategies, LineSeriesXY,
     ColorHEX, SolidLine, ColorRGBA, SolidFill, PointShape,
