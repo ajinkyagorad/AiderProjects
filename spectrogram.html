@@ -3,21 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Real-time Spectrogram</title>
+    <title>Real-time Audio Analysis</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-matrix@1.1.1/dist/chartjs-chart-matrix.min.js"></script>
     <style>
         body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
-        .chart-container { display: flex; width: 100%; max-width: 1200px; height: 400px; }
-        #frequencyChart { width: 30%; }
-        #spectrogramChart { width: 70%; }
+        .chart-container { display: flex; width: 100%; max-width: 1200px; height: 300px; margin-bottom: 20px; }
+        #frequencyChart, #spectrogramChart { width: 50%; }
+        #transcription { width: 100%; height: 100px; border: 1px solid #ccc; padding: 10px; margin-bottom: 20px; overflow-y: auto; }
         button { margin: 10px 5px; padding: 5px 10px; }
     </style>
 </head>
 <body>
-    <h1>Real-time Spectrogram</h1>
+    <h1>Real-time Audio Analysis</h1>
     <button id="startButton">Start</button>
     <button id="stopButton" disabled>Stop</button>
+    <div id="transcription"></div>
     <div class="chart-container">
         <canvas id="frequencyChart"></canvas>
         <canvas id="spectrogramChart"></canvas>
@@ -32,14 +33,16 @@
         let frequencyChart;
         let spectrogramChart;
         let spectrogramData = [];
+        let recognition;
 
         const startButton = document.getElementById('startButton');
         const stopButton = document.getElementById('stopButton');
+        const transcriptionDiv = document.getElementById('transcription');
 
-        startButton.addEventListener('click', startSpectrogram);
-        stopButton.addEventListener('click', stopSpectrogram);
+        startButton.addEventListener('click', startAnalysis);
+        stopButton.addEventListener('click', stopAnalysis);
 
-        function startSpectrogram() {
+        function startAnalysis() {
             audioContext = new (window.AudioContext || window.webkitAudioContext)();
             analyser = audioContext.createAnalyser();
             analyser.fftSize = 2048;
@@ -51,20 +54,24 @@
                     source = audioContext.createMediaStreamSource(stream);
                     source.connect(analyser);
                     createCharts();
-                    updateSpectrogram();
+                    updateAnalysis();
+                    startTranscription();
                     startButton.disabled = true;
                     stopButton.disabled = false;
                 })
                 .catch(err => console.error('Error accessing microphone:', err));
         }
 
-        function stopSpectrogram() {
+        function stopAnalysis() {
             cancelAnimationFrame(animationId);
             if (source) {
                 source.disconnect();
             }
             if (audioContext) {
                 audioContext.close();
+            }
+            if (recognition) {
+                recognition.stop();
             }
             startButton.disabled = false;
             stopButton.disabled = true;
@@ -77,7 +84,7 @@
                 data: {
                     labels: Array.from({ length: analyser.frequencyBinCount }, (_, i) => i),
                     datasets: [{
-                        label: 'Frequency Intensity',
+                        label: 'Frequency Spectrum',
                         data: Array(analyser.frequencyBinCount).fill(0),
                         backgroundColor: 'rgba(255, 99, 132, 0.8)'
                     }]
@@ -86,22 +93,20 @@
                     responsive: true,
                     maintainAspectRatio: false,
                     animation: false,
-                    indexAxis: 'y',
                     scales: {
                         x: {
                             title: {
                                 display: true,
-                                text: 'Intensity'
-                            },
-                            min: 0,
-                            max: 255
+                                text: 'Frequency Bin'
+                            }
                         },
                         y: {
                             title: {
                                 display: true,
-                                text: 'Frequency Bin'
+                                text: 'Magnitude'
                             },
-                            reverse: true
+                            min: 0,
+                            max: 255
                         }
                     }
                 }
@@ -154,11 +159,11 @@
             });
         }
 
-        function updateSpectrogram() {
-            animationId = requestAnimationFrame(updateSpectrogram);
+        function updateAnalysis() {
+            animationId = requestAnimationFrame(updateAnalysis);
             analyser.getByteFrequencyData(dataArray);
 
-            // Update frequency chart
+            // Update frequency spectrum
             frequencyChart.data.datasets[0].data = Array.from(dataArray);
             frequencyChart.update();
 
@@ -172,6 +177,37 @@
                 row.map((value, j) => ({ x: i, y: j, v: value }))
             );
             spectrogramChart.update();
+        }
+
+        function startTranscription() {
+            if ('webkitSpeechRecognition' in window) {
+                recognition = new webkitSpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = true;
+
+                recognition.onresult = (event) => {
+                    let interimTranscript = '';
+                    let finalTranscript = '';
+
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        if (event.results[i].isFinal) {
+                            finalTranscript += event.results[i][0].transcript;
+                        } else {
+                            interimTranscript += event.results[i][0].transcript;
+                        }
+                    }
+
+                    transcriptionDiv.innerHTML = finalTranscript + '<i style="color: #999;">' + interimTranscript + '</i>';
+                };
+
+                recognition.onerror = (event) => {
+                    console.error('Speech recognition error', event.error);
+                };
+
+                recognition.start();
+            } else {
+                transcriptionDiv.innerHTML = 'Web Speech API is not supported in this browser.';
+            }
         }
     </script>
 </body>
