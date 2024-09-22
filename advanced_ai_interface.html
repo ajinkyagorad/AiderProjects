@@ -479,7 +479,7 @@
 
         async function generateImage(prompt) {
             updateDebugBox('Generating image...');
-            if (!API_KEY) {
+            if (!OPENAI_API_KEY) {
                 addToChatHistory('System', 'Please set up your API key in the config.js file.');
                 return;
             }
@@ -493,7 +493,7 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${API_KEY}`
+                            'Authorization': `Bearer ${OPENAI_API_KEY}`
                         },
                         body: JSON.stringify({
                             prompt: prompt,
@@ -506,7 +506,7 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${API_KEY}`
+                            'Authorization': `Bearer ${AIML_API_KEY}`
                         },
                         body: JSON.stringify({
                             prompt: prompt,
