@@ -44,13 +44,6 @@
             padding: 10px;
             border-radius: 5px;
         }
-        #spectrum {
-            width: 100px;
-            height: 50px;
-            margin-left: 10px;
-            background-color: rgba(0, 255, 0, 0.1);
-            border-radius: 5px;
-        }
         @keyframes fadeInOut {
             0%, 100% { opacity: 0.3; }
             50% { opacity: 1; }
@@ -236,7 +229,11 @@
     <canvas id="starfield"></canvas>
     <div id="main-container">
         <div id="left-panel">
-            <input type="password" id="api-key-input" placeholder="Enter your OpenAI API key">
+            <div id="settings-box" style="display: none;">
+                <input type="password" id="api-key-input" placeholder="Enter your API key">
+                <button id="save-settings">Save Settings</button>
+            </div>
+            <button id="toggle-settings">Settings</button>
             <div id="transcription-container">
                 <div id="transcription-container">
                     <div id="transcription"></div>
@@ -585,23 +582,14 @@
         }
 
         function startContinuousVoiceRecognition() {
-            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-            recognition.lang = 'en-US';
+            if (!('webkitSpeechRecognition' in window)) {
+                updateDebugBox('Web Speech API is not supported in this browser.');
+                return;
+            }
+
+            const recognition = new webkitSpeechRecognition();
             recognition.continuous = true;
             recognition.interimResults = true;
-
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            const analyser = audioContext.createAnalyser();
-            analyser.fftSize = 256;
-            const bufferLength = analyser.frequencyBinCount;
-            const dataArray = new Uint8Array(bufferLength);
-
-            navigator.mediaDevices.getUserMedia({ audio: true })
-                .then(stream => {
-                    const source = audioContext.createMediaStreamSource(stream);
-                    source.connect(analyser);
-                })
-                .catch(err => console.error('Error accessing microphone:', err));
 
             recognition.onstart = () => {
                 isListening = true;
@@ -623,10 +611,6 @@
 
                 transcriptionDiv.innerHTML = '<span class="fading-text">' + finalTranscript + '</span><i style="color: #999;">' + interimTranscript + '</i>';
                 updateChatHistory(finalTranscript);
-
-                // Update spectrogram
-                analyser.getByteFrequencyData(dataArray);
-                updateSpectrogram(dataArray);
             };
 
             recognition.onend = () => {
@@ -634,15 +618,11 @@
                 recognition.start();
             };
 
-            recognition.start();
+            recognition.onerror = (event) => {
+                updateDebugBox('Error occurred in recognition: ' + event.error);
+            };
 
-            // Continuously update spectrogram
-            function updateSpectrogramLoop() {
-                analyser.getByteFrequencyData(dataArray);
-                updateSpectrogram(dataArray);
-                requestAnimationFrame(updateSpectrogramLoop);
-            }
-            updateSpectrogramLoop();
+            recognition.start();
         }
 
         function updateChatHistory(text) {
@@ -705,20 +685,58 @@
         const toggleApiButton = document.getElementById('toggle-api');
         toggleApiButton.addEventListener('click', () => {
             useOpenAI = !useOpenAI;
-            toggleApiButton.textContent = useOpenAI ? 'Switch to AIML API' : 'Switch to OpenAI API';
+            toggleApiButton.textContent = useOpenAI ? 'API: OpenAI' : 'API: AIML';
+            localStorage.setItem('useOpenAI', useOpenAI);
         });
+
+        // Load saved API preference
+        const savedApiPreference = localStorage.getItem('useOpenAI');
+        if (savedApiPreference !== null) {
+            useOpenAI = savedApiPreference === 'true';
+            toggleApiButton.textContent = useOpenAI ? 'API: OpenAI' : 'API: AIML';
+        }
 
         // Theme selector handler
         themeSelector.addEventListener('change', (event) => {
             document.body.className = event.target.value + '-theme';
+            localStorage.setItem('theme', event.target.value);
         });
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+            document.body.className = savedTheme + '-theme';
+            themeSelector.value = savedTheme;
+        }
+
+        // Toggle settings box
+        const toggleSettingsButton = document.getElementById('toggle-settings');
+        const settingsBox = document.getElementById('settings-box');
+        toggleSettingsButton.addEventListener('click', () => {
+            settingsBox.style.display = settingsBox.style.display === 'none' ? 'block' : 'none';
+        });
+
+        // Save settings
+        const saveSettingsButton = document.getElementById('save-settings');
+        saveSettingsButton.addEventListener('click', () => {
+            const apiKey = document.getElementById('api-key-input').value;
+            localStorage.setItem('apiKey', apiKey);
+            settingsBox.style.display = 'none';
+            alert('Settings saved!');
+        });
+
+        // Load saved API key
+        const savedApiKey = localStorage.getItem('apiKey');
+        if (savedApiKey) {
+            document.getElementById('api-key-input').value = savedApiKey;
+        }
 
         // Update help content
         function updateHelpContent() {
             const helpContent = document.getElementById('help-content');
             helpContent.innerHTML = `
                 <h2>Help Instructions</h2>
-                <p>1. Enter your API key at the top.</p>
+                <p>1. Click the "Settings" button to open the settings box and enter your API key.</p>
                 <p>2. Use voice commands for all interactions.</p>
                 <p>3. Say "draw rectangle", "draw circle", or "draw triangle" for drawing.</p>
                 <p>4. Say "summarize chat" to get a conversation summary.</p>
@@ -728,11 +746,11 @@
                 <p>8. Say "generate image of [description]" for image creation.</p>
                 <p>9. Click the "Fullscreen" button for VR mode.</p>
                 <p>10. Use the "Toggle AI Inference" button to enable/disable AI responses.</p>
-                <p>11. Use the "Toggle API" button to switch between OpenAI and AIML APIs.</p>
+                <p>11. The "API: OpenAI/AIML" button shows the current API and allows switching.</p>
                 <p>12. Select a theme from the dropdown to change the color scheme.</p>
-                <p>13. The spectrum visualizer shows real-time audio input.</p>
-                <p>14. Generated images appear in the chat and the top-right box.</p>
-                <p>15. If voice recognition stops, click the "Help" button to see these instructions.</p>
+                <p>13. Generated images appear in the chat and the top-right box.</p>
+                <p>14. If voice recognition stops, refresh the page or check your microphone settings.</p>
+                <p>15. Your settings and preferences are saved between sessions.</p>
             `;
         }
 
@@ -775,9 +793,57 @@
                 from { transform: translateY(0); }
                 to { transform: translateY(100vh); }
             }
-            .dark-theme { background-color: #000; color: #fff; }
-            .light-theme { background-color: #fff; color: #000; }
-            .blue-theme { background-color: #001f3f; color: #7FDBFF; }
+            .dark-theme { 
+                background-color: #000; 
+                color: #fff; 
+            }
+            .dark-theme #chat-history,
+            .dark-theme #transcription,
+            .dark-theme #canvas-container,
+            .dark-theme #help-panel {
+                background-color: #222;
+                border-color: #444;
+            }
+            .dark-theme button,
+            .dark-theme select {
+                background-color: #333;
+                color: #fff;
+                border-color: #555;
+            }
+            .light-theme { 
+                background-color: #fff; 
+                color: #000; 
+            }
+            .light-theme #chat-history,
+            .light-theme #transcription,
+            .light-theme #canvas-container,
+            .light-theme #help-panel {
+                background-color: #f0f0f0;
+                border-color: #ccc;
+            }
+            .light-theme button,
+            .light-theme select {
+                background-color: #e0e0e0;
+                color: #000;
+                border-color: #ccc;
+            }
+            .blue-theme { 
+                background-color: #001f3f; 
+                color: #7FDBFF; 
+            }
+            .blue-theme #chat-history,
+            .blue-theme #transcription,
+            .blue-theme #canvas-container,
+            .blue-theme #help-panel {
+                background-color: #003366;
+                border-color: #0055a4;
+            }
+            .blue-theme button,
+            .blue-theme select {
+                background-color: #004080;
+                color: #7FDBFF;
+                border-color: #0066cc;
+            }
         `;
         document.head.appendChild(style);
     </script>
