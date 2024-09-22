@@ -18,7 +18,7 @@
     <h1>Real-time Audio Analysis</h1>
     <button id="startButton">Start</button>
     <button id="stopButton" disabled>Stop</button>
-    <div id="statusMessage"></div>
+    <div id="statusMessage" style="margin: 10px 0; font-weight: bold;"></div>
     <div id="transcription"></div>
     <div class="chart-container">
         <canvas id="frequencyChart"></canvas>
@@ -43,43 +43,50 @@
         startButton.addEventListener('click', startAnalysis);
         stopButton.addEventListener('click', stopAnalysis);
 
-        function startAnalysis() {
+        async function startAnalysis() {
             const statusMessage = document.getElementById('statusMessage');
-            statusMessage.textContent = 'Requesting microphone access...';
+            statusMessage.textContent = 'Checking microphone permissions...';
 
-            if (audioContext) {
-                audioContext.close();
+            try {
+                // Check for microphone permissions
+                const permissionStatus = await navigator.permissions.query({ name: 'microphone' });
+                if (permissionStatus.state === 'denied') {
+                    throw new Error('Microphone permission denied. Please allow microphone access and try again.');
+                }
+
+                statusMessage.textContent = 'Requesting microphone access...';
+
+                if (audioContext) {
+                    audioContext.close();
+                }
+
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    throw new Error('Your browser does not support microphone access.');
+                }
+
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                statusMessage.textContent = 'Microphone access granted. Starting analysis...';
+                
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                analyser.fftSize = 2048;
+                const bufferLength = analyser.frequencyBinCount;
+                dataArray = new Uint8Array(bufferLength);
+
+                source = audioContext.createMediaStreamSource(stream);
+                source.connect(analyser);
+                spectrogramData = []; // Reset spectrogram data
+                createCharts();
+                updateAnalysis();
+                startTranscription();
+                startButton.disabled = true;
+                stopButton.disabled = false;
+                startButton.textContent = 'Stop';
+                statusMessage.textContent = 'Analysis running...';
+            } catch (err) {
+                console.error('Error in startAnalysis:', err);
+                statusMessage.textContent = `Error: ${err.message}. Please check your permissions and try again.`;
             }
-
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                statusMessage.textContent = 'Your browser does not support microphone access.';
-                return;
-            }
-
-            navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-                .then(stream => {
-                    statusMessage.textContent = 'Microphone access granted. Starting analysis...';
-                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                    analyser = audioContext.createAnalyser();
-                    analyser.fftSize = 2048;
-                    const bufferLength = analyser.frequencyBinCount;
-                    dataArray = new Uint8Array(bufferLength);
-
-                    source = audioContext.createMediaStreamSource(stream);
-                    source.connect(analyser);
-                    spectrogramData = []; // Reset spectrogram data
-                    createCharts();
-                    updateAnalysis();
-                    startTranscription();
-                    startButton.disabled = true;
-                    stopButton.disabled = false;
-                    startButton.textContent = 'Stop';
-                    statusMessage.textContent = 'Analysis running...';
-                })
-                .catch(err => {
-                    console.error('Error accessing microphone:', err);
-                    statusMessage.textContent = `Error accessing microphone: ${err.message}. Please check your permissions and try again.`;
-                });
         }
 
         function stopAnalysis() {
