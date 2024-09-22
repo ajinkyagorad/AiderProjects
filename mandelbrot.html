@@ -59,13 +59,39 @@
             ctx.putImageData(imageData, 0, 0);
         }
 
-        function animate() {
-            zoom *= 1.01;
-            draw();
-            requestAnimationFrame(animate);
-        }
+        let isDragging = false;
+        let lastX, lastY;
 
-        animate();
+        canvas.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            lastX = e.clientX;
+            lastY = e.clientY;
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const dx = e.clientX - lastX;
+                const dy = e.clientY - lastY;
+                offsetX -= dx / (0.5 * zoom * canvas.width);
+                offsetY -= dy / (0.5 * zoom * canvas.height);
+                lastX = e.clientX;
+                lastY = e.clientY;
+                draw();
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        canvas.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+            zoom *= zoomFactor;
+            draw();
+        });
+
+        draw();
     </script>
 </body>
 </html>
