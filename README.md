@@ -100,6 +100,30 @@ A Python-based real-time data visualization dashboard using LightningChart.
 
 ## Running the Projects
 
-To run the HTML-based projects, simply open the respective HTML files in a web browser. For the Python-based dashboard, you'll need to have Python installed along with the required dependencies. Run the Python script using a Python interpreter.
+### HTML-based Projects
+
+To run the HTML-based projects, simply open the respective HTML files in a web browser.
+
+### Python-based Projects
+
+For the Python-based projects (dashboard_realtime.py), follow these steps:
+
+1. Ensure you have Python installed on your computer. You can download it from [python.org](https://www.python.org/downloads/).
+
+2. Open a terminal or command prompt.
+
+3. Install the required dependencies by running:
+   ```
+   pip install lightningchart
+   ```
+
+4. Navigate to the directory containing the Python script.
+
+5. Run the script using:
+   ```
+   python dashboard_realtime.py
+   ```
+
+Note: Make sure you have the necessary permissions to install packages and run Python scripts on your system.
 
 Feel free to explore each project and its source code. If you have any questions or suggestions, please open an issue or submit a pull request.
