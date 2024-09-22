@@ -16,6 +16,23 @@
             font-size: 18px;
             overflow: hidden;
         }
+        #image-box {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 300px;
+            height: 300px;
+            border: 1px solid #333;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        #image-box img {
+            max-width: 100%;
+            max-height: 100%;
+        }
         #transcription-container {
             display: flex;
             align-items: flex-start;
@@ -133,6 +150,9 @@
         }
         #help-content {
             padding: 20px;
+            font-size: 12px;
+            max-height: 280px;
+            overflow-y: auto;
         }
         #starfield {
             position: fixed;
@@ -234,12 +254,14 @@
     <div id="control-buttons">
         <button id="fullscreen-button">Fullscreen</button>
         <button id="toggle-ai-inference">Toggle AI</button>
+        <button id="toggle-api">Toggle API (OpenAI/AIML)</button>
         <select id="theme-selector">
             <option value="dark">Dark</option>
             <option value="light">Light</option>
             <option value="blue">Blue</option>
         </select>
     </div>
+    <div id="image-box"></div>
     <div id="help-panel">
         <div id="help-content">
             <h2>Help Instructions</h2>
@@ -307,10 +329,33 @@
         let cardCount = 0;
         let isListening = false;
         let isAiInferenceEnabled = true;
+        let useOpenAI = true;
 
         // Set up canvas
         canvas.width = canvas.offsetWidth;
         canvas.height = canvas.offsetHeight;
+
+        // Set up audio context for spectrum
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256;
+        const bufferLength = analyser.frequencyBinCount;
+        const dataArray = new Uint8Array(bufferLength);
+
+        // Start audio processing
+        navigator.mediaDevices.getUserMedia({ audio: true })
+            .then(stream => {
+                const source = audioContext.createMediaStreamSource(stream);
+                source.connect(analyser);
+                updateSpectrum();
+            })
+            .catch(err => console.error('Error accessing microphone:', err));
+
+        function updateSpectrum() {
+            requestAnimationFrame(updateSpectrum);
+            analyser.getByteFrequencyData(dataArray);
+            updateSpectrogram(dataArray);
+        }
 
         // Starfield animation
         const scene = new THREE.Scene();
@@ -409,31 +454,59 @@
             addToChatHistory('System', 'Generating image... Please wait.');
 
             try {
-                const response = await fetch('https://api.openai.com/v1/images/generations', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${API_KEY}`
-                    },
-                    body: JSON.stringify({
-                        prompt: prompt,
-                        n: 1,
-                        size: "1024x1024"
-                    })
-                });
+                let response;
+                if (useOpenAI) {
+                    response = await fetch('https://api.openai.com/v1/images/generations', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${API_KEY}`
+                        },
+                        body: JSON.stringify({
+                            prompt: prompt,
+                            n: 1,
+                            size: "1024x1024"
+                        })
+                    });
+                } else {
+                    response = await fetch('https://api.aimlapi.com/flux/generate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${API_KEY}`
+                        },
+                        body: JSON.stringify({
+                            prompt: prompt,
+                            model: 'FLUX'
+                        })
+                    });
+                }
 
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
                 const data = await response.json();
-                if (data.data && data.data[0].url) {
+                let imageUrl;
+                if (useOpenAI) {
+                    imageUrl = data.data[0].url;
+                } else {
+                    imageUrl = data.image_url; // Adjust this based on the actual AIML API response structure
+                }
+
+                if (imageUrl) {
                     const imgElement = document.createElement('img');
-                    imgElement.src = data.data[0].url;
+                    imgElement.src = imageUrl;
                     imgElement.alt = prompt;
                     imgElement.style.maxWidth = '100%';
                     addToChatHistory('AI', 'Image generated:');
                     chatHistory.lastElementChild.appendChild(imgElement);
+                    
+                    // Update image box
+                    const imageBox = document.getElementById('image-box');
+                    imageBox.innerHTML = '';
+                    imageBox.appendChild(imgElement.cloneNode());
+                    
                     updateDebugBox('Image generated successfully');
                 } else {
                     throw new Error('No image URL in the response');
@@ -625,6 +698,13 @@
             toggleAiInferenceButton.textContent = isAiInferenceEnabled ? 'Disable AI Inference' : 'Enable AI Inference';
         });
 
+        // Toggle API button handler
+        const toggleApiButton = document.getElementById('toggle-api');
+        toggleApiButton.addEventListener('click', () => {
+            useOpenAI = !useOpenAI;
+            toggleApiButton.textContent = useOpenAI ? 'Switch to AIML API' : 'Switch to OpenAI API';
+        });
+
         // Theme selector handler
         themeSelector.addEventListener('change', (event) => {
             document.body.className = event.target.value + '-theme';
@@ -635,7 +715,7 @@
             const helpContent = document.getElementById('help-content');
             helpContent.innerHTML = `
                 <h2>Help Instructions</h2>
-                <p>1. Enter your OpenAI API key at the top.</p>
+                <p>1. Enter your API key at the top.</p>
                 <p>2. Use voice commands for all interactions.</p>
                 <p>3. Say "draw rectangle", "draw circle", or "draw triangle" for drawing.</p>
                 <p>4. Say "summarize chat" to get a conversation summary.</p>
@@ -645,8 +725,11 @@
                 <p>8. Say "generate image of [description]" for image creation.</p>
                 <p>9. Click the "Fullscreen" button for VR mode.</p>
                 <p>10. Use the "Toggle AI Inference" button to enable/disable AI responses.</p>
-                <p>11. Select a theme from the dropdown to change the color scheme.</p>
-                <p>12. If voice recognition stops, click the "Help" button to see these instructions.</p>
+                <p>11. Use the "Toggle API" button to switch between OpenAI and AIML APIs.</p>
+                <p>12. Select a theme from the dropdown to change the color scheme.</p>
+                <p>13. The spectrum visualizer shows real-time audio input.</p>
+                <p>14. Generated images appear in the chat and the top-right box.</p>
+                <p>15. If voice recognition stops, click the "Help" button to see these instructions.</p>
             `;
         }
 
