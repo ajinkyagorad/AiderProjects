@@ -22,7 +22,7 @@ A virtual reality speech transcription tool with real-time visualization.
 <details>
 <summary>Click to view demo</summary>
 
-[Open VR Speech Transcription Demo](transcription.html)
+[Open VR Speech Transcription Demo](https://htmlpreview.github.io/?https://github.com/ajinkyagorad/AiderProjects/blob/main/transcription.html)
 
 </details>
 
@@ -33,7 +33,7 @@ An interactive webpage showcasing the intersection of technology, AI, and enviro
 <details>
 <summary>Click to view demo</summary>
 
-[Open Tech, AI & Environment Demo](tech_ai_environment.html)
+[Open Tech, AI & Environment Demo](https://htmlpreview.github.io/?https://github.com/ajinkyagorad/AiderProjects/blob/main/tech_ai_environment.html)
 
 </details>
 
@@ -44,7 +44,7 @@ A real-time chat interface with AI integration and speech recognition capabiliti
 <details>
 <summary>Click to view demo</summary>
 
-[Open Advanced Transcribed Chat AI Demo](transcribed_chat_ai.html)
+[Open Advanced Transcribed Chat AI Demo](https://htmlpreview.github.io/?https://github.com/ajinkyagorad/AiderProjects/blob/main/transcribed_chat_ai.html)
 
 </details>
 
@@ -55,7 +55,7 @@ A simple clone of the YouTube interface demonstrating front-end development skil
 <details>
 <summary>Click to view demo</summary>
 
-[Open YouTube Clone Demo](youtube_clone.html)
+[Open YouTube Clone Demo](https://htmlpreview.github.io/?https://github.com/ajinkyagorad/AiderProjects/blob/main/youtube_clone.html)
 
 </details>
 
@@ -66,7 +66,7 @@ A complex 3D animation system with time-travel capabilities and data recording f
 <details>
 <summary>Click to view demo</summary>
 
-[Open Advanced 3D Animation Demo](advanced_3d_animation.html)
+[Open Advanced 3D Animation Demo](https://htmlpreview.github.io/?https://github.com/ajinkyagorad/AiderProjects/blob/main/advanced_3d_animation.html)
 
 </details>
 
@@ -77,7 +77,7 @@ An interactive 3D simulation of the solar system with controls for time manipula
 <details>
 <summary>Click to view demo</summary>
 
-[Open 3D Solar System Simulation Demo](solar_system.html)
+[Open 3D Solar System Simulation Demo](https://htmlpreview.github.io/?https://github.com/ajinkyagorad/AiderProjects/blob/main/solar_system.html)
 
 </details>
 
@@ -88,7 +88,7 @@ An interactive visualization of the Mandelbrot set with zoom and pan capabilitie
 <details>
 <summary>Click to view demo</summary>
 
-[Open Animated Mandelbrot Set Demo](mandelbrot.html)
+[Open Animated Mandelbrot Set Demo](https://htmlpreview.github.io/?https://github.com/ajinkyagorad/AiderProjects/blob/main/mandelbrot.html)
 
 </details>
 
