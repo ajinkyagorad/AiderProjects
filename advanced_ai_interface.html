@@ -230,7 +230,8 @@
     <div id="main-container">
         <div id="left-panel">
             <div id="settings-box" style="display: none;">
-                <input type="password" id="api-key-input" placeholder="Enter your API key">
+                <input type="password" id="openai-api-key-input" placeholder="Enter your OpenAI API key">
+                <input type="password" id="aiml-api-key-input" placeholder="Enter your AIML API key">
                 <button id="save-settings">Save Settings</button>
             </div>
             <button id="toggle-settings">Settings</button>
@@ -311,9 +312,30 @@
 
         createSpectrogram();
         // API integration
-        const apiKeyInput = document.getElementById('api-key-input');
-        let API_KEY = localStorage.getItem('apiKey') || ''; // Get API key from local storage
-        apiKeyInput.value = API_KEY;
+        const openaiApiKeyInput = document.getElementById('openai-api-key-input');
+        const aimlApiKeyInput = document.getElementById('aiml-api-key-input');
+        let OPENAI_API_KEY = '';
+        let AIML_API_KEY = '';
+
+        // Function to load API keys from config file
+        async function loadApiKeys() {
+            try {
+                const response = await fetch('config.json');
+                const config = await response.json();
+                OPENAI_API_KEY = config.openai_api_key || localStorage.getItem('openaiApiKey') || '';
+                AIML_API_KEY = config.aiml_api_key || localStorage.getItem('aimlApiKey') || '';
+                openaiApiKeyInput.value = OPENAI_API_KEY;
+                aimlApiKeyInput.value = AIML_API_KEY;
+            } catch (error) {
+                console.error('Error loading config file:', error);
+                OPENAI_API_KEY = localStorage.getItem('openaiApiKey') || '';
+                AIML_API_KEY = localStorage.getItem('aimlApiKey') || '';
+                openaiApiKeyInput.value = OPENAI_API_KEY;
+                aimlApiKeyInput.value = AIML_API_KEY;
+            }
+        }
+
+        loadApiKeys();
         const chatHistory = document.getElementById('chat-history');
         const rightPanel = document.getElementById('right-panel');
         const helpButton = document.getElementById('help-button');
@@ -418,7 +440,8 @@
 
         async function getAIResponse(message) {
             updateDebugBox('Fetching AI response...');
-            if (!API_KEY) {
+            const currentApiKey = useOpenAI ? OPENAI_API_KEY : AIML_API_KEY;
+            if (!currentApiKey) {
                 return 'Please set up your API key in the settings.';
             }
 
@@ -429,7 +452,7 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${API_KEY}`
+                            'Authorization': `Bearer ${currentApiKey}`
                         },
                         body: JSON.stringify({
                             model: 'gpt-3.5-turbo',
@@ -442,7 +465,7 @@
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${API_KEY}`
+                            'Authorization': `Bearer ${currentApiKey}`
                         },
                         body: JSON.stringify({
                             message: message
@@ -735,8 +758,10 @@
         // Save settings
         const saveSettingsButton = document.getElementById('save-settings');
         saveSettingsButton.addEventListener('click', () => {
-            API_KEY = document.getElementById('api-key-input').value;
-            localStorage.setItem('apiKey', API_KEY);
+            OPENAI_API_KEY = document.getElementById('openai-api-key-input').value;
+            AIML_API_KEY = document.getElementById('aiml-api-key-input').value;
+            localStorage.setItem('openaiApiKey', OPENAI_API_KEY);
+            localStorage.setItem('aimlApiKey', AIML_API_KEY);
             settingsBox.style.display = 'none';
             alert('Settings saved!');
         });
