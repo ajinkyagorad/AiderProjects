@@ -95,13 +95,13 @@
         button:hover {
             background-color: rgba(68, 68, 68, 0.7);
         }
-        #api-key-input {
+        .api-key-input {
             width: 100%;
             padding: 10px;
             margin-bottom: 10px;
             background-color: #222;
             color: #fff;
-            border: none;
+            border: 1px solid #444;
             font-size: 16px;
         }
         .card {
@@ -465,16 +465,24 @@
                     });
                 } else {
                     // AIML API call (replace with actual AIML API endpoint and parameters)
-                    response = await fetch('https://api.aimlapi.com/chat', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${currentApiKey}`
-                        },
-                        body: JSON.stringify({
-                            message: message
-                        })
-                    });
+                    try {
+                        response = await fetch('https://api.aimlapi.com/chat', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${currentApiKey}`
+                            },
+                            body: JSON.stringify({
+                                message: message
+                            })
+                        });
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                    } catch (error) {
+                        console.error('AIML API Error:', error);
+                        return 'The AIML API is currently unavailable. Please try again later or switch to OpenAI.';
+                    }
                 }
 
                 const data = await response.json();
@@ -564,7 +572,7 @@
         // Removed Flux-based rapid generator and its usage
 
         function addToChatHistory(role, message) {
-            if (message.trim() !== '') {
+            if (message && message.trim() !== '') {
                 chatMessages.push({ role, message });
                 const messageElement = document.createElement('p');
                 messageElement.innerHTML = `<strong>${role}:</strong> ${message}`;
