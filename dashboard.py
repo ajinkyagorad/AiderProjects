@@ -2,50 +2,66 @@ import time
 import math
 from lightningchart import (
     LightningChart, LegendBoxBuilders, AxisScrollStrategies, 
-    SolidFill, ColorRGBA, SolidLine, ColorHEX, ColorPalettes,
-    UIElementBuilders, UIOrigins, FontSettings, AutoCursorModes
+    SolidFill, ColorRGBA, SolidLine, ColorPalettes,
+    UIElementBuilders, UIOrigins, FontSettings, AutoCursorModes,
+    Dashboard, Themes
 )
 
-# Create a LightningChart instance
-chart = LightningChart()
+# Create a Dashboard instance
+dashboard = Dashboard(
+    {
+        "title": "Advanced Multi-Chart Dashboard",
+        "theme": Themes.dark
+    }
+)
 
-# Add a ChartXY
-chart_xy = chart.add_chart_xy()
+# Add multiple ChartXY to the dashboard
+chart_xy1 = dashboard.create_chart_xy()
+chart_xy2 = dashboard.create_chart_xy()
 
-# Style the chart
-chart_xy.set_title("Advanced Real-time Dashboard")
-chart_xy.set_background_fill(SolidFill(ColorRGBA(30, 30, 30)))
-chart_xy.get_default_axis_x().set_title("Time (s)")
-chart_xy.get_default_axis_y().set_title("Value")
+# Style the charts
+chart_xy1.set_title("Sine Wave")
+chart_xy2.set_title("Cosine Wave")
 
-# Configure X-axis to scroll
-chart_xy.get_default_axis_x().set_scroll_strategy(AxisScrollStrategies.progressive)
+for chart in [chart_xy1, chart_xy2]:
+    chart.get_default_axis_x().set_title("Time (s)")
+    chart.get_default_axis_y().set_title("Value")
+    chart.get_default_axis_x().set_scroll_strategy(AxisScrollStrategies.progressive)
 
-# Add multiple line series
-line_series1 = chart_xy.add_line_series()
+# Add line series to each chart
+line_series1 = chart_xy1.add_line_series()
 line_series1.set_name("Sine Wave")
 line_series1.set_stroke(SolidLine(ColorPalettes.arction(0), 2))
 
-line_series2 = chart_xy.add_line_series()
+line_series2 = chart_xy2.add_line_series()
 line_series2.set_name("Cosine Wave")
 line_series2.set_stroke(SolidLine(ColorPalettes.arction(1), 2))
 
-# Add a legend box
-legend = chart_xy.add_legend_box(LegendBoxBuilders.horizontal_legend_box)
-legend.add(line_series1)
-legend.add(line_series2)
+# Add legend boxes
+for chart, series in [(chart_xy1, line_series1), (chart_xy2, line_series2)]:
+    legend = chart.add_legend_box(LegendBoxBuilders.horizontal_legend_box)
+    legend.add(series)
 
-# Add a UI element for displaying current values
-value_display = chart_xy.add_ui_element(
+# Add UI elements for displaying current values
+value_display1 = chart_xy1.add_ui_element(
     UIElementBuilders.text_box_builder
-    .set_text("Current Values")
+    .set_text("Current Sine Value")
     .set_origin(UIOrigins.right_top)
     .set_margin(5)
     .set_font_settings(FontSettings.from_font_size(14))
 )
 
-# Enable AutoCursor
-chart_xy.set_auto_cursor(AutoCursorModes.x)
+value_display2 = chart_xy2.add_ui_element(
+    UIElementBuilders.text_box_builder
+    .set_text("Current Cosine Value")
+    .set_origin(UIOrigins.right_top)
+    .set_margin(5)
+    .set_font_settings(FontSettings.from_font_size(14))
+)
+
+# Enable AutoCursor for both charts
+chart_xy1.set_auto_cursor(AutoCursorModes.x)
+chart_xy2.set_auto_cursor(AutoCursorModes.x)
 
 # Function to generate data
 def generate_data():
@@ -57,18 +73,20 @@ def generate_data():
         t += 0.1
         time.sleep(0.01)
 
-# Main loop to update the chart
+# Main loop to update the charts
 data_generator = generate_data()
 for x, y1, y2 in data_generator:
     line_series1.add_point(x, y1)
     line_series2.add_point(x, y2)
     
-    # Keep only the last 1000 points
+    # Keep only the last 100 points
     if x > 100:
-        chart_xy.get_default_axis_x().set_interval(x - 100, x)
+        chart_xy1.get_default_axis_x().set_interval(x - 100, x)
+        chart_xy2.get_default_axis_x().set_interval(x - 100, x)
     
-    # Update the value display
-    value_display.set_text(f"Sine: {y1:.2f}\nCosine: {y2:.2f}")
+    # Update the value displays
+    value_display1.set_text(f"Sine: {y1:.2f}")
+    value_display2.set_text(f"Cosine: {y2:.2f}")
     
-    # Update the chart
-    chart.render()
+    # Update the dashboard
+    dashboard.render()
