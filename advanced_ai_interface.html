@@ -393,7 +393,7 @@
                         prompt: prompt,
                         n: 1,
                         size: "256x256",
-                        response_format: "b64_json"
+                        response_format: "url"
                     })
                 });
 
@@ -402,16 +402,16 @@
                 }
 
                 const data = await response.json();
-                if (data.data && data.data[0].b64_json) {
+                if (data.data && data.data[0].url) {
                     const imgElement = document.createElement('img');
-                    imgElement.src = `data:image/png;base64,${data.data[0].b64_json}`;
+                    imgElement.src = data.data[0].url;
                     imgElement.alt = prompt;
                     imgElement.style.maxWidth = '100%';
                     addToChatHistory('AI', 'Image generated:');
                     chatHistory.lastElementChild.appendChild(imgElement);
                     updateDebugBox('Image generated successfully');
                 } else {
-                    throw new Error('No image data in the response');
+                    throw new Error('No image URL in the response');
                 }
             } catch (error) {
                 console.error('Error:', error);
@@ -420,39 +420,7 @@
             }
         }
 
-        // Flux-based rapid generator
-        const fluxGenerator = (function() {
-            const state = { value: 0 };
-            const listeners = new Set();
-
-            function emitChange() {
-                for (let listener of listeners) {
-                    listener();
-                }
-            }
-
-            setInterval(() => {
-                state.value = Math.random() * 100;
-                emitChange();
-            }, 100); // Update every 100ms
-
-            return {
-                getState: () => state,
-                subscribe: (listener) => {
-                    listeners.add(listener);
-                    return () => listeners.delete(listener);
-                }
-            };
-        })();
-
-        // Usage of flux generator
-        const fluxUnsubscribe = fluxGenerator.subscribe(() => {
-            const value = fluxGenerator.getState().value;
-            updateDebugBox(`Flux value: ${value.toFixed(2)}`);
-        });
-
-        // Don't forget to unsubscribe when needed
-        // fluxUnsubscribe();
+        // Removed Flux-based rapid generator and its usage
 
         function addToChatHistory(role, message) {
             chatMessages.push({ role, message });
